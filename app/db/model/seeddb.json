@@ -1,0 +1,47 @@
+{
+  "RadUserTypeSetup": [
+		{"UserType_Name": "Admin", "UserType_DESC": "System Administrator"},
+		{"UserType_Name": "Technician", "UserType_DESC": "System Technician"},
+		{"UserType_Name": "Accountant", "UserType_DESC": "Accountant"},
+		{"UserType_Name": "Radiologist", "UserType_DESC": "System Radiologist"},
+		{"UserType_Name": "RefferalDocter", "UserType_DESC": "Refferal Docter"},
+		{"UserType_Name": "DepartmentPublicComputer", "UserType_DESC": "Department of Public Computer"},
+		{"UserType_Name": "Patient", "UserType_DESC": "Patient"}
+	],
+
+  "RadUserStatusSetup": [
+		{"UserStatus_Name": "Active", "UserStatus_DESC": "Active Status"},
+		{"UserStatus_Name": "Inactive", "UserStatus_DESC": "Inactive Status"},
+		{"UserStatus_Name": "Pending", "UserStatus_DESC": "Pending Status"}
+	],
+
+  "RadUserSetup": [
+    {"username": "admin", "password": "admin@@"}
+  ],
+
+  "RadUserInfoSetup": [
+    {
+      "User_NameEN": "Administrator",
+      "User_LastNameEN": "System",
+      "User_NameTH": "ผู้ดูแลระบบ",
+      "User_LastNameTH": "อย่างเป็นทางการ",
+      "User_Email": "admin@radconnext.com",
+      "User_Phone": "0123456789",
+      "User_LineID": "jQWERTYmro789erDnfR...",
+      "User_PathRadiant": "local/path/to/Radiant"
+    }
+  ],
+
+  "RadHospitalSetup": [
+		{
+			"Hos_Name": "ชาตรีเวช",
+			"Hos_Address": "400 ถ.ชาตรี ต.ชาตรี อ.ชาตรี จ.ชาตรี",
+			"Hos_Tel": "0123456789",
+			"Hos_WebUrl": "www.chatrivech.com",
+			"Hos_Contact": "contactus@chatrivech.com",
+			"Hos_Remark": "first class for everyone.",
+			"Hos_RootPathUri": "chatrivech"
+    }
+	]
+
+}
