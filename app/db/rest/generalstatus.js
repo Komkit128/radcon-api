@@ -23,10 +23,10 @@ app.post('/list', (req, res) => {
           const limit = req.query.jtPageSize;
           const startAt = req.query.jtStartIndex;
           const count = await GeneralStatus.count();
-          const types = await GeneralStatus.findAll({offset: startAt, limit: limit, attributes: excludeColumn});
+          const gsStatus = await GeneralStatus.findAll({offset: startAt, limit: limit, attributes: excludeColumn});
           //res.json({status: {code: 200}, types: types});
           //log.info('Result=> ' + JSON.stringify(types));
-          res.json({Result: "OK", Records: types, TotalRecordCount: count});
+          res.json({Result: "OK", Records: gsStatus, TotalRecordCount: count});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});

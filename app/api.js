@@ -62,6 +62,7 @@ module.exports = ( webSocketServer, monitor ) => {
 	apiApp.use('/hospital', hospital);
 	apiApp.use('/cliamerights', cliamerights);
 	apiApp.use('/urgenttypes', urgenttypes);
+	apiApp.use('/generalstatus', generalstatus);	
 	apiApp.use('/cliamerights', cliamerights);
 	return { api: apiApp, db: db };
 }
