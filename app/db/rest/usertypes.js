@@ -50,9 +50,6 @@ app.post('/(:subAction)', (req, res) => {
       if (ur.length > 0){
         const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
       	const subAction = req.params.subAction;
-        log.info('Start Action => ' + subAction);
-        log.info('Body of Request=> ' + JSON.stringify(req.body));
-        log.info('Query of Request=> ' + JSON.stringify(req.query));
         const id = req.body.id;
         try {
           switch (subAction) {
@@ -84,6 +81,24 @@ app.post('/(:subAction)', (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
+});
+
+app.get('/options', async (req, res) => {
+  const types = await Usertype.findAll({ attributes: ['id', 'UserType_Name'] });
+  const result = [];
+  types.forEach((type, i) => {
+    result.push({Value: type.id, DisplayText: type.UserType_Name});
+  });
+  res.json({Result: "OK", Options: result});
+});
+
+app.post('/options', async (req, res) => {
+  const types = await Usertype.findAll({ attributes: ['id', 'UserType_Name'] });
+  const result = [];
+  types.forEach((type, i) => {
+    result.push({Value: type.id, DisplayText: type.UserType_Name});
+  });
+  res.json({Result: "OK", Options: result});
 });
 
 module.exports = ( dbconn, monitor ) => {

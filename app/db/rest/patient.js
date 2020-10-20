@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, Userstatus, log, auth;
+var db, Patient, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
@@ -22,8 +22,8 @@ app.post('/list', (req, res) => {
         try {
           const limit = req.query.jtPageSize;
           const startAt = req.query.jtStartIndex;
-          const count = await Userstatus.count();
-          const types = await Userstatus.findAll({offset: startAt, limit: limit, attributes: excludeColumn});
+          const count = await Patient.count();
+          const types = await Patient.findAll({offset: startAt, limit: limit, attributes: excludeColumn});
           //res.json({status: {code: 200}, types: types});
           //log.info('Result=> ' + JSON.stringify(types));
           res.json({Result: "OK", Records: types, TotalRecordCount: count});
@@ -57,17 +57,17 @@ app.post('/(:subAction)', (req, res) => {
         try {
           switch (subAction) {
             case 'add':
-              let newUserstatus = req.body;
-              let adUserstatus = await Userstatus.create(newUserstatus);
-              res.json({Result: "OK", Record: adUserstatus});
+              let newPatient = req.body;
+              let adPatient = await Patient.create(newPatient);
+              res.json({Result: "OK", Record: adPatient});
             break;
             case 'update':
-              let updateUserstatus = req.body;
-              await Userstatus.update(updateUserstatus, { where: { id: id } });
+              let updatePatient = req.body;
+              await Patient.update(updatePatient, { where: { id: id } });
               res.json({Result: "OK"});
             break;
             case 'delete':
-              await Userstatus.destroy({ where: { id: id } });
+              await Patient.destroy({ where: { id: id } });
               res.json({Result: "OK"});
             break;
           }
@@ -86,28 +86,10 @@ app.post('/(:subAction)', (req, res) => {
   }
 });
 
-app.get('/options', async (req, res) => {
-  const statuses = await Userstatus.findAll({ attributes: ['id', 'UserStatus_Name'] });
-  const result = [];
-  statuses.forEach((status, i) => {
-    result.push({Value: status.id, DisplayText: status.UserStatus_Name});
-  });
-  res.json({Result: "OK", Options: result});
-});
-
-app.post('/options', async (req, res) => {
-  const statuses = await Userstatus.findAll({ attributes: ['id', 'UserStatus_Name_Name'] });
-  const result = [];
-  statuses.forEach((status, i) => {
-    result.push({Value: status.id, DisplayText: type.UserStatus_Name});
-  });
-  res.json({Result: "OK", Options: result});
-});
-
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
-  Userstatus = db.userstatuses;
+  Patient = db.patients;
   return app;
 }

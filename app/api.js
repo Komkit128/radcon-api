@@ -55,6 +55,8 @@ module.exports = ( webSocketServer, monitor ) => {
 	const urgenttypes = require('./db/rest/urgenttypes.js')(db, log);
 	const generalstatus = require('./db/rest/generalstatus.js')(db, log);
 	const cliamerights = require('./db/rest/cliamerights.js')(db, log);
+	const orthanc = require('./db/rest/orthanc.js')(db, log);
+	const patient = require('./db/rest/patient.js')(db, log);
 	apiApp.use('/users', users);
 	apiApp.use('/user', user);
 	apiApp.use('/usertypes', usertypes);
@@ -62,7 +64,9 @@ module.exports = ( webSocketServer, monitor ) => {
 	apiApp.use('/hospital', hospital);
 	apiApp.use('/cliamerights', cliamerights);
 	apiApp.use('/urgenttypes', urgenttypes);
-	apiApp.use('/generalstatus', generalstatus);	
+	apiApp.use('/generalstatus', generalstatus);
 	apiApp.use('/cliamerights', cliamerights);
+	apiApp.use('/orthanc', orthanc);
+	apiApp.use('/patient', patient);
 	return { api: apiApp, db: db };
 }
