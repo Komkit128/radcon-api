@@ -1,85 +1,16 @@
+require('dotenv').config();
 const fs = require('fs');
 const util = require("util");
 const path = require('path');
 const url = require('url');
-const jwt = require("jwt-simple");
+const bodyParser = require('body-parser');
 const express = require('express');
 const app = express();
 
-var db, User, log;
+var db, User, log, auth;
 
-function doExistUser(username){
-  return new Promise(async function(resolve, reject) {
-    try {
-      const users = await db.users.findAll({ where: {	username: username}});
-      resolve(users);
-    } catch(error) {
-      reject(error)
-    }
-  });
-}
-
-function doVerifyUser(username, password) {
-  return new Promise(function(resolve, reject) {
-    doExistUser(username).then((users) => {
-      if (users.length > 0) {
-        const isCorect = users[0].correctPassword(password);
-        resolve({ result: isCorect });
-      } else {
-        resolve({ result: false, reson: 'Invalid username'});
-      }
-    });
-  });
-}
-
-function doEncodeToken(username) {
-  const payload = {
-		sub: username,
-		iat: new Date().getTime(), //มาจากคำว่า issued at time (สร้างเมื่อ)
-	};
-	const payloadEncode = jwt.encode(payload, process.env.SECRET_KAY);
-	log.info('payloadEncode => ' + payloadEncode);
-  return payloadEncode;
-};
-
-function doDecodeToken(token){
-  const payloadDecode = jwt.decode(token, process.env.SECRET_KAY);
-  log.info('payloadDecode => ' + payloadDecode);
-  return payloadDecode;
-}
-
-function doGetHospitalFromRootUri(rootname){
-  return new Promise(async function(resolve, reject) {
-    try {
-      const hosp = await db.hospitals.findAll({ where: {	Hos_RootPathUri: rootname}});
-      resolve(hosp);
-    } catch(error) {
-      reject(error)
-    }
-  });
-}
-
-function doGetUsertypeById(typeId){
-  return new Promise(async function(resolve, reject) {
-    try {
-      const types = await db.usertypes.findAll({ where: {	id: typeId}});
-      resolve(types);
-    } catch(error) {
-      reject(error)
-    }
-  });
-}
-
-function doGetUserstatusActive(){
-  return new Promise(async function(resolve, reject) {
-    try {
-      const statuses = await db.userstatuses.findAll({ where: {	UserStatus_Name: 'Active'}});
-      resolve(statuses);
-    } catch(error) {
-      reject(error)
-    }
-  });
-}
+app.use(express.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 ///////////////////////////////////////////////////////
 
@@ -125,27 +56,64 @@ app.get('/searchusername/(:username)', async (req, res) => {
 app.post('/verifyusername/(:username)', async (req, res) => {
   const username = req.params.username;
   const password = req.body.password;
-  doVerifyUser(username, password).then((result) => {
+  auth.doVerifyUser(username, password).then((result) => {
     res.json({status: {code: 200}, result: result});
   }).catch ((err) => {
     res.json({status: {code: 500}, error: err});
   });
 });
+app.post('/login', async (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+  auth.doVerifyUser(username, password).then((result) => {
+    if (result.result === true) {
+      const yourToken = auth.doEncodeToken(username);
+      res.json({status: {code: 200}, login: 'success', token: yourToken });
+    } else {
+      res.json({status: {code: 200}, login: 'failed',});
+    }
+  }).catch ((err) => {
+    res.json({status: {code: 500}, error: err});
+  });
+});
+app.put('/changepassword', async (req, res) => {
+  let token = req.headers.authorization;
+  if (token !== 'null') {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        let newPassword = req.body.password;
+        try {
+          const hospitals = await User.update({password: newPassword}, { where: { username: ur[0].sub } });
+          res.json({status: {code: 200}, hospitals: hospitals});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
 app.get('/gentoken/(:username)', (req, res) => {
   const username = req.params.username;
-  const yourToken = doEncodeToken(username);
+  const yourToken = auth.doEncodeToken(username);
   res.json({status: {code: 200}, token: yourToken});
 });
 app.post('/', function(req, res) {
   let newUsername = req.body.username;
-  doExistUser(newUsername).then(async (users) => {
+  auth.doExistUser(newUsername).then(async (users) => {
     if (users.length === 0) {
       let rootname = req.originalUrl.split('/')[1];
       try {
-        doGetHospitalFromRootUri(rootname).then((hospitals) => {
+        auth.doGetHospitalFromRootUri(rootname).then((hospitals) => {
           let usertypeId = req.body.usertypeId;
-          doGetUsertypeById(usertypeId).then((usertypes) => {
-            doGetUserstatusActive().then(async (userstatuses) => {
+          auth.doGetUsertypeById(usertypeId).then((usertypes) => {
+            auth.doGetUserstatusActive().then(async (userstatuses) => {
               let newUserinfo = {
                 User_NameEN: req.body.User_NameEN,
               	User_LastNameEN: req.body.User_LastNameEN,
@@ -165,7 +133,7 @@ app.post('/', function(req, res) {
               adUser.setUsertype(usertypes[0]);
               adUser.setUserstatus(userstatuses[0]);
               adUser.setUserinfo(adUserinfo);
-              const yourToken = doEncodeToken(newUsername);
+              const yourToken = auth.doEncodeToken(newUsername);
               res.json({status: {code: 200}, token: yourToken });
             });
           });
@@ -181,10 +149,10 @@ app.post('/', function(req, res) {
 });
 app.post('/info', function(req, res) {
   let token = req.headers.authorization;
-  let yourPayload = doDecodeToken(token);
+  let yourPayload = auth.doDecodeToken(token);
   let yourUsername = yourPayload.sub;
   log.info('yourUsername => ' + JSON.stringify(yourUsername));
-  doExistUser(yourUsername).then(async (users) => {
+  auth.doExistUser(yourUsername).then(async (users) => {
     log.info('users => ' + JSON.stringify(users));
     if (users.length > 0) {
       const newInfo = req.body;
@@ -266,6 +234,8 @@ app.delete('/(:userId)', async function(req, res) {
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
-  User = db.sequelize.define('users', db.Def.RadUserDef);
+  //User = db.sequelize.define('users', db.Def.RadUserDef);
+  User = db.users;
+  auth = require('./auth.js')(db, log);
   return app;
 }

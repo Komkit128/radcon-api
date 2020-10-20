@@ -2,16 +2,25 @@
 //https://www.enterprisedb.com/postgres-tutorials/how-quickly-build-api-using-nodejs-postgresql
 //https://medium.com/@benjaminpwagner/using-sequelize-hooks-and-crypto-to-encrypt-user-passwords-5cf1a27513d9
 //https://sequelize.org/v5/manual/data-types.html
+
+/*
+Radconnext/api$ node -r dotenv/config app/db/setup.js  dotenv_config_path=.env
+*/
+
 const log = require('electron-log');
 log.transports.console.level = 'info';
 log.transports.file.level = 'info';
 
 const Def = require('./model/model-def.js');
 const seed = require('./model/seeddb.json');
-const db = require('./relation.js')(log);
+const db = require('./relation.js');
 
 const RadHospitalSetup = seed.RadHospitalSetup;
-db.sequelize.sync({ force: true }).then(() => {
+db.sequelize.sync({ force: true }).then(async () => {
+  let gs = await  db.generalstatuses.bulkCreate(seed.RadGeneralStatusSetup, { validate: true });
+  console.log('generalstatuses created => ' + JSON.stringify(gs));
+  let cr = await  db.cliamerights.bulkCreate(seed.RadCliameRightsSetup, { validate: true });
+  console.log('cliamerights created => ' + JSON.stringify(cr));
   db.hospitals.bulkCreate(seed.RadHospitalSetup, { validate: true }).then((hosp) => {
     console.log('hospitals created => ' + JSON.stringify(hosp));
     return new Promise((resolve, reject) => {resolve(hosp)});

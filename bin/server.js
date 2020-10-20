@@ -44,20 +44,27 @@ mainApp.use('/', express.static(__dirname + '/../public'));
  * Create HTTP server.
  */
 
-doGetAllRootApp().then((rootUri) => {
+//doGetAllRootApp().then((rootUri) => {
   httpsServer = https.createServer(credentials, mainApp/* , reqListener */);
 	webSocketServer = require(__dirname + '/../app/lib/websocket.js')(httpsServer, log);
-  const api = require(__dirname + '/../app/api.js')(webSocketServer, log, rootUri);
-  const app = require(__dirname + '/../app/app.js')(webSocketServer, log, rootUri);
+  const {api, db} = require(__dirname + '/../app/api.js')(webSocketServer, log);
+  const app = require(__dirname + '/../app/app.js')(webSocketServer, log);
+  mainApp.use('/api', api);
+  mainApp.use('/app', app);
+  /*
   log.info('hosted=>' + JSON.stringify(rootUri));
   rootUri.forEach((item)=>{
     log.info(item.Hos_RootPathUri);
     mainApp.use('/' + item.Hos_RootPathUri + '/api', api);
     mainApp.use('/' + item.Hos_RootPathUri + '/app', app);
   });
+  */
 
+  const login = require(__dirname + '/../app/db/rest/login.js')(db, log);
+  const uploader = require(__dirname + '/../app/lib/uploader.js')(mainApp);
+  mainApp.use('/api/login', login);
 
-
+  //const util = require(__dirname + '/../app/lib/mod/util.js')(log);
   mainApp.use('/app', app);
   mainApp.get('/', (req, res) => {
     const hostname = req.headers.host;
@@ -65,9 +72,6 @@ doGetAllRootApp().then((rootUri) => {
     log.info('hostname = ' + hostname);
     log.info('rootname = ' + rootname);
     log.info('METHODE = ' + req.method);
-
-    let url = '/app/hospitals/';
-  	res.redirect(url);
   })
   /**
    * Listen on provided port, on all network interfaces.
@@ -76,7 +80,7 @@ doGetAllRootApp().then((rootUri) => {
   httpsServer.listen(port);
   httpsServer.on('error', onError);
   httpsServer.on('listening', onListening);
-})
+//})
 /**
  * Normalize a port into a number, string, or false.
  */

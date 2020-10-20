@@ -39,9 +39,20 @@
 			"Hos_Tel": "0123456789",
 			"Hos_WebUrl": "www.chatrivech.com",
 			"Hos_Contact": "contactus@chatrivech.com",
-			"Hos_Remark": "first class for everyone.",
-			"Hos_RootPathUri": "chatrivech"
+			"Hos_Remark": "first class for everyone."
     }
-	]
+	],
 
+  "RadGeneralStatusSetup" : [
+    {"GS_Name": "active", "GS_Remark": "Active general status of system"},
+    {"GS_Name": "inactive", "GS_Remark": "Inactive general status of system"}
+  ],
+
+  "RadCliameRightsSetup" : [
+    {"CR_Name": "บัตรทอง 30 บาท", "CR_Remark": ""},
+    {"CR_Name": "ประกันสุขภาพ", "CR_Remark": ""},
+    {"CR_Name": "ข้าราชการทั่วไป", "CR_Remark": ""},
+    {"CR_Name": "ข้าราชการครู", "CR_Remark": ""},
+    {"CR_Name": "เจ้าหน้าที่โรงพยาบาล", "CR_Remark": ""}
+  ]
 }

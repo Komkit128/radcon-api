@@ -92,11 +92,6 @@ const RadHospitalDef = {
 			},
 			Hos_Remark : {
 				type: Sequelize.STRING
-			},
-			Hos_RootPathUri: {
-				type: Sequelize.STRING(70),
-				unique: true,
-				allowNull: false
 			}
 		};
 
@@ -121,29 +116,38 @@ const RadUrgentTypeDef = {
 				type: Sequelize.STRING(80),
 				allowNull: false
 			},
-			UGType_Day : {
-				type: Sequelize.INTEGER,
-				allowNull: false
+			UGType_ColorCode: {
+				type: Sequelize.STRING(10),
 			},
-			UGType_Hour : {
-				type: Sequelize.INTEGER,
-				allowNull: false
+			UGType_AcceptStep: {
+				type: Sequelize.JSON,
 			},
-			UGType_Minute : {
-				type: Sequelize.INTEGER,
-				allowNull: false
+			UGType_WorkingStep: {
+				type: Sequelize.JSON,
+			},
+			UGType_WarningStep: {
+				type: Sequelize.JSON,
 			}
 		};
 
-//Hos_ID
+const RadGeneralStatusDef = {
+			GS_Name: {
+				type: Sequelize.STRING(40),
+				allowNull: false
+			},
+			GS_Remark : {
+				type: Sequelize.STRING,
+			}
+		};
+
+//GS_ID
 const RadCliameRightsDef = {
 			CR_Name : {
 				type: Sequelize.STRING(80),
 				allowNull: false
 			},
-			CR_Value : {
-				type: Sequelize.FLOAT,
-				allowNull: false
+			CR_Remark : {
+				type: Sequelize.STRING,
 			}
 		};
 
@@ -205,64 +209,6 @@ const RadPatientDef = {
 			}
 		};
 
-//Hos_ID
-const RadRefferalDoctorDef = {
-			Dr_NameEN : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_LastNameEN : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_NameTH : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_LastNameTH : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_Tel : {
-				type: Sequelize.STRING(30)
-			},
-			Dr_Email : {
-				type: Sequelize.STRING(30)
-			},
-			Dr_LineID : {
-				type: Sequelize.STRING(30)
-			}
-		};
-
-//Hos_ID
-const RadRadiologistDef = {
-			Dr_NameEN : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_LastNameEN : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_NameTH : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_LastNameTH : {
-				type: Sequelize.STRING(80),
-				allowNull: false
-			},
-			Dr_Tel : {
-				type: Sequelize.STRING(30)
-			},
-			Dr_Email : {
-				type: Sequelize.STRING(30)
-			},
-			Dr_LineID : {
-				type: Sequelize.STRING(30)
-			}
-		};
-
 //Ortanc_ID
 const RadDicomTransferLogDef = {
 			DicomTags : {
@@ -279,7 +225,7 @@ const RadDicomTransferLogDef = {
 //Case_RadRefferalDoctor
 //Case_CRID
 //Case_RadRadiologist
-//DicomTransfer_ID
+
 const RadCaseDef = {
       Case_OrthancStudyID : {
 				type: Sequelize.UUID,
@@ -328,11 +274,10 @@ module.exports = {
 	RadHospitalDef,
 	RadOrthancDef,
 	RadUrgentTypeDef,
+	RadGeneralStatusDef,
 	RadCliameRightsDef,
 	RadCaseStatusDef,
 	RadPatientDef,
-	RadRefferalDoctorDef,
-	RadRadiologistDef,
 	RadDicomTransferLogDef,
 	RadCaseDef,
 	RadRadiologistResponseDef

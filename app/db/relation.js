@@ -63,20 +63,14 @@ orthancs.belongsTo(hospitals);
 const urgenttypes = sequelize.define('urgenttypes', Def.RadUrgentTypeDef);
 urgenttypes.belongsTo(hospitals);
 
+const generalstatuses = sequelize.define('generalstatuses', Def.RadGeneralStatusDef);
 const cliamerights = sequelize.define('cliamerights', Def.RadCliameRightsDef);
-cliamerights.belongsTo(hospitals);
 
 const casestatuses = sequelize.define('casestatuses', Def.RadCaseStatusDef);
 casestatuses.belongsTo(hospitals);
 
 const patients = sequelize.define('patients', Def.RadPatientDef);
 patients.belongsTo(hospitals);
-
-const refferaldoctors = sequelize.define('refferaldoctors', Def.RadRefferalDoctorDef);
-refferaldoctors.belongsTo(hospitals);
-
-const radiologistes = sequelize.define('radiologistes', Def.RadRadiologistDef);
-radiologistes.belongsTo(hospitals);
 
 const dicomtransferlogs = sequelize.define('dicomtransferlogs', Def.RadDicomTransferLogDef);
 dicomtransferlogs.belongsTo(orthancs);
@@ -87,9 +81,7 @@ cases.belongsTo(patients);
 cases.belongsTo(urgenttypes);
 cases.belongsTo(cliamerights);
 cases.belongsTo(casestatuses);
-cases.belongsTo(refferaldoctors);
 cases.belongsTo(users);
-cases.belongsTo(dicomtransferlogs);
 
 const radiologistresponses = sequelize.define('radiologistresponses', Def.RadRadiologistResponseDef);
 radiologistresponses.belongsTo(cases);
@@ -104,11 +96,10 @@ module.exports =  {
   userinfoes,
   orthancs,
   urgenttypes,
+  generalstatuses,
   cliamerights,
   casestatuses,
   patients,
-  refferaldoctors,
-  radiologistes,
   dicomtransferlogs,
   cases,
   radiologistresponses
