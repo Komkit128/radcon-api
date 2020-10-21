@@ -67,13 +67,26 @@ const generalstatuses = sequelize.define('generalstatuses', Def.RadGeneralStatus
 const cliamerights = sequelize.define('cliamerights', Def.RadCliameRightsDef);
 
 const casestatuses = sequelize.define('casestatuses', Def.RadCaseStatusDef);
-casestatuses.belongsTo(hospitals);
+casestatuses.belongsTo(generalstatuses);
 
 const patients = sequelize.define('patients', Def.RadPatientDef);
 patients.belongsTo(hospitals);
 
 const dicomtransferlogs = sequelize.define('dicomtransferlogs', Def.RadDicomTransferLogDef);
 dicomtransferlogs.belongsTo(orthancs);
+
+const hospitalreports = sequelize.define('hospitalreports', Def.RadHospitalReportDef);
+hospitalreports.belongsTo(hospitals);
+
+const workinghours = sequelize.define('workinghours', Def.RadWorkingHourDef);
+workinghours.belongsTo(hospitals);
+
+const workingschedules = sequelize.define('workingschedules', Def.RadWorkingScheduleDef);
+workingschedules.belongsTo(hospitals);
+workingschedules.belongsTo(users);
+
+const templates = sequelize.define('templates', Def.RadTemplateDef);
+templates.belongsTo(users);
 
 const cases = sequelize.define('cases', Def.RadCaseDef);
 cases.belongsTo(hospitals);
@@ -83,8 +96,14 @@ cases.belongsTo(cliamerights);
 cases.belongsTo(casestatuses);
 cases.belongsTo(users);
 
-const radiologistresponses = sequelize.define('radiologistresponses', Def.RadRadiologistResponseDef);
-radiologistresponses.belongsTo(cases);
+const caseresponses = sequelize.define('caseresponses', Def.RadCaseResponseDef);
+caseresponses.belongsTo(cases);
+caseresponses.belongsTo(users);
+
+const casereports = sequelize.define('casereports', Def.RadCaseReportDef);
+casereports.belongsTo(users);
+casereports.belongsTo(cases);
+
 
 module.exports =  {
   sequelize,
@@ -101,6 +120,11 @@ module.exports =  {
   casestatuses,
   patients,
   dicomtransferlogs,
+  hospitalreports,
+  workinghours,
+  workingschedules,
+  templates,
   cases,
-  radiologistresponses
+  caseresponses,
+  casereports
 }

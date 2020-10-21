@@ -151,7 +151,7 @@ const RadCliameRightsDef = {
 			}
 		};
 
-//Hos_ID
+//GeneralStatus_ID
 const RadCaseStatusDef = {
 			CS_Name_EN: {
 				type: Sequelize.STRING(80),
@@ -218,6 +218,51 @@ const RadDicomTransferLogDef = {
 		};
 
 //Hos_ID
+const RadHospitalReportDef = {
+			Content : {
+				type: Sequelize.JSON,
+				allowNull: false
+			}
+		};
+
+//Hos_ID
+const RadWorkingHourDef = {
+			WH_Name : {
+				type: Sequelize.STRING(50), //กะที่หนึ่ง, กะที่สอง, กะที่สาม, ...
+				allowNull: false
+			},
+			WH : {
+				type: Sequelize.JSON, //{from: '07.00', to: "16.00"}
+				allowNull: false
+			}
+		};
+
+//Hos_ID
+//User_ID <-- Radiologist
+const RadWorkingScheduleDef = {
+			Date : {
+				type: Sequelize.DATE,
+				allowNull: false
+			},
+			WorkPlan : {
+				type: Sequelize.JSON, //{WH_ID: 1, Status: "Y/N"}
+				allowNull: false
+			}
+		};
+
+//User_ID <-- Radiologist
+const RadTemplateDef = {
+			Name : {
+				type: Sequelize.STRING(80),
+				allowNull: false
+			},
+			Content : {
+				type: Sequelize.TEXT,
+				allowNull: false
+			}
+		};
+
+//Hos_ID
 //Case_ParentID
 //Case_CSID
 //Case_UGTypeID
@@ -257,13 +302,20 @@ const RadCaseDef = {
 			}
 		};
 
-//RadRadiologist_ID
+//User_ID <-- Radiologist
 //Case_ID
-const RadRadiologistResponseDef = {
+const RadCaseResponseDef = {
 			Response_Text : {
 				type: Sequelize.TEXT
 			}
+		};
 
+//Case_ID
+//User_ID <-- ผู้ออกรายงาน
+const RadCaseReportDef = {
+			Remark : {
+				type: Sequelize.TEXT
+			}
 		};
 
 module.exports = {
@@ -279,6 +331,11 @@ module.exports = {
 	RadCaseStatusDef,
 	RadPatientDef,
 	RadDicomTransferLogDef,
+	RadHospitalReportDef,
+	RadWorkingHourDef,
+	RadWorkingScheduleDef,
+	RadTemplateDef,
 	RadCaseDef,
-	RadRadiologistResponseDef
+	RadCaseResponseDef,
+	RadCaseReportDef
 }

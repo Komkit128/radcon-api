@@ -9,9 +9,9 @@ const app = express();
 app.use(express.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
-var db, User, log, auth;
+var db, CaseStatus, log, auth;
 
-const excludeColumn = { exclude: [ 'updatedAt', 'createdAt'] };
+const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
 //List API
 app.post('/list', (req, res) => {
@@ -20,31 +20,13 @@ app.post('/list', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
-          const hospitalId = req.query.hospitalId;
-          const userInclude = [{model: db.userinfoes, attributes: excludeColumn}];
           const limit = req.query.jtPageSize;
           const startAt = req.query.jtStartIndex;
-          const count = await User.count();
-          const users = await User.findAll({offset: startAt, limit: limit, attributes: excludeColumn, include: userInclude, where: {hospitalId: hospitalId}});
+          const count = await CaseStatus.count();
+          const gsStatus = await CaseStatus.findAll({offset: startAt, limit: limit, attributes: excludeColumn});
           //res.json({status: {code: 200}, types: types});
-          //log.info('Result=> ' + JSON.stringify(users));
-          const result = [];
-          users.forEach((user, i) => {
-            let tempUser = {hospitalId: user.hospitalId, userId: user.id, username: user.username, TypeId: user.usertypeId, StatusId: user.userstatusId};
-            if (user.userinfo) {
-              tempUser.id = user.userinfo.id,
-              tempUser.NameEN = user.userinfo.User_NameEN;
-              tempUser.LastNameEN = user.userinfo.User_LastNameEN;
-              tempUser.NameTH = user.userinfo.User_NameTH;
-              tempUser.LastNameTH = user.userinfo.User_LastNameTH;
-              tempUser.Email = user.userinfo.User_Email;
-              tempUser.Phone = user.userinfo.User_Phone;
-              tempUser.LineID = user.userinfo.User_LineID;
-            }
-            result.push(tempUser);
-          });
-          //log.info('Final Result=> ' + JSON.stringify(result));
-          res.json({Result: "OK", Records: result, TotalRecordCount: count});
+          //log.info('Result=> ' + JSON.stringify(types));
+          res.json({Result: "OK", Records: gsStatus, TotalRecordCount: count});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -66,7 +48,7 @@ app.post('/(:subAction)', (req, res) => {
   if (token) {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        //const userInclude = [{model: db.usertypes, attributes: excludeColumn}, {model: db.userstatuses, attributes: excludeColumn}, {model: db.userinfoes, attributes: excludeColumn}];
+        const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
       	const subAction = req.params.subAction;
         log.info('Start Action => ' + subAction);
         log.info('Body of Request=> ' + JSON.stringify(req.body));
@@ -75,17 +57,17 @@ app.post('/(:subAction)', (req, res) => {
         try {
           switch (subAction) {
             case 'add':
-              let newUser = req.body;
-              let adUser = await User.create(newUser);
-              res.json({Result: "OK", Record: adUser});
+              let newCaseStatus = req.body;
+              let adCaseStatus = await CaseStatus.create(newCaseStatus);
+              res.json({Result: "OK", Record: adCaseStatus});
             break;
             case 'update':
-              let updateUser = req.body;
-              await User.update(updateUser, { where: { id: id } });
+              let updateCaseStatus = req.body;
+              await CaseStatus.update(updateCaseStatus, { where: { id: id } });
               res.json({Result: "OK"});
             break;
             case 'delete':
-              await User.destroy({ where: { id: id } });
+              await CaseStatus.destroy({ where: { id: id } });
               res.json({Result: "OK"});
             break;
           }
@@ -104,10 +86,28 @@ app.post('/(:subAction)', (req, res) => {
   }
 });
 
+app.get('/options', async (req, res) => {
+  const statuses = await CaseStatus.findAll({ attributes: ['id', 'GS_Name'] });
+  const result = [];
+  statuses.forEach((status, i) => {
+    result.push({Value: status.id, DisplayText: status.GS_Name});
+  });
+  res.json({Result: "OK", Options: result});
+});
+
+app.post('/options', async (req, res) => {
+  const statuses = await CaseStatus.findAll({ attributes: ['id', 'GS_Name'] });
+  const result = [];
+  statuses.forEach((status, i) => {
+    result.push({Value: status.id, DisplayText: status.GS_Name});
+  });
+  res.json({Result: "OK", Options: result});
+});
+
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
   auth = require('./auth.js')(db, log);
-  User = db.users;
+  CaseStatus = db.casestatuses;
   return app;
 }

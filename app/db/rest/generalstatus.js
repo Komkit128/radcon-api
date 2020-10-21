@@ -86,6 +86,24 @@ app.post('/(:subAction)', (req, res) => {
   }
 });
 
+app.get('/options', async (req, res) => {
+  const statuses = await GeneralStatus.findAll({ attributes: ['id', 'GS_Name'] });
+  const result = [];
+  statuses.forEach((status, i) => {
+    result.push({Value: status.id, DisplayText: status.GS_Name});
+  });
+  res.json({Result: "OK", Options: result});
+});
+
+app.post('/options', async (req, res) => {
+  const statuses = await GeneralStatus.findAll({ attributes: ['id', 'GS_Name'] });
+  const result = [];
+  statuses.forEach((status, i) => {
+    result.push({Value: status.id, DisplayText: status.GS_Name});
+  });
+  res.json({Result: "OK", Options: result});
+});
+
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;

@@ -20,10 +20,11 @@ app.post('/list', (req, res) => {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
         try {
+          const hospitalId = req.query.hospitalId;
           const limit = req.query.jtPageSize;
           const startAt = req.query.jtStartIndex;
           const count = await Patient.count();
-          const types = await Patient.findAll({offset: startAt, limit: limit, attributes: excludeColumn});
+          const types = await Patient.findAll({offset: startAt, limit: limit, attributes: excludeColumn, where: {hospitalId: hospitalId}});
           //res.json({status: {code: 200}, types: types});
           //log.info('Result=> ' + JSON.stringify(types));
           res.json({Result: "OK", Records: types, TotalRecordCount: count});

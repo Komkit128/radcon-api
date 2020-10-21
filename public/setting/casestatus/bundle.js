@@ -1,7 +1,7 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 window.$ = window.jQuery = require('jquery');
 
-//const usertype = require('./mod/usertype.js')($);
+//const hospital = require('./mod/hospital.js')($);
 
 var upwd, wsm, wsl;
 
@@ -10,7 +10,7 @@ $( document ).ready(function() {
 	const initPage = function() {
 		var token = doGetToken();
 		if (token) {
-			doLoadGeneralStatusPage()
+			doLoadCasestatusPage()
 		} else {
 			//doLoadLogin();
       let url = '/';
@@ -63,7 +63,7 @@ function doLogin(){
         localStorage.setItem('token', response.token);
         localStorage.setItem('userdata', JSON.stringify(response.data));
 				upwd = password;
-				doLoadGeneralStatusPage();
+				doLoadCasestatusPage();
 			}
 		});
 	}
@@ -91,7 +91,7 @@ function doUserLogout() {
   window.location.replace(url);
 }
 
-function doLoadGeneralStatusPage(){
+function doLoadCasestatusPage(){
   let jqueryUiCssUrl = "../../lib/jquery-ui.min.css";
 	let jqueryUiJsUrl = "../../lib/jquery-ui.min.js";
 	let jqueryLoadingUrl = '../../lib/jquery.loading.min.js';
@@ -116,21 +116,22 @@ function doLoadGeneralStatusPage(){
 			doShowUserProfile();
 		});
 		$("#Home-Cmd").click(function(){
-			//doShowUsertype();
+			//doShowHospital();
 		});
     $("#Logout-Cmd").click(function(){
 			doUserLogout();
 		});
 
     //doShowUserProfile();
-		//doShowUsertype();
+		//doShowHospital();
 
     //doConnectWebsocketMaster(userdata.username);
     //doConnectWebsocketLocal(userdata.username);
 	});
 }
+
 /*
-const doShowUsertype = function (){
+const doShowHospital = function (){
   hospital.doShowHospitalList();
 }
 */
@@ -178,7 +179,7 @@ const doGetUserData = function (){
 
 module.exports =  {
 	doGetToken,
-  doGetUserData,
+  doGetUserData
 }
 
 },{"jquery":2}],2:[function(require,module,exports){

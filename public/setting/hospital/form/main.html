@@ -40,7 +40,7 @@
         User: userInterface,
         Urgent: urgentInterface,
         Orthanc: orthancInterface,
-        patient: patientInterface,
+        Patient: patientInterface,
         Hos_Name: {
           title: 'Name',
           width: '15%'
@@ -139,10 +139,11 @@
           deleteConfirmation: function(data) {
             console.log(data);
           },
+          */
           recordsLoaded: (event, data) => {
             console.log(data);
           },
-          */
+
           fields: {
             hospitalId: {
               type: 'hidden',
@@ -323,6 +324,7 @@
               edit: false,
               list: false
             },
+            TransferLog: transferLogInterface,
             Orthanc_Local: {
               title: 'Local',
               width: '15%',
@@ -356,13 +358,13 @@
     edit: false,
     create: false,
     display: function (hospitalData) {
-      var $img = $('<img src="../../../images/orthanc-icon.png" title="Edit Orthanc of Hospital" width="30" height="auto"/>');
+      var $img = $('<img src="../../../images/patient-icon.png" title="Edit Patient of Hospital" width="30" height="auto"/>');
       $img.mouseover(function () {
         $(this).css({'cursor': 'pointer'});
       });
       $img.click(function () {
         $('#HospitalTableContainer').jtable('openChildTable', $img.closest('tr'), {
-          title: 'Orthanc โรงพยาบาล' + hospitalData.record.Hos_Name,
+          title: 'Patient โรงพยาบาล' + hospitalData.record.Hos_Name,
           paging: true,
           pageSize: 10,
           actions: {
@@ -457,12 +459,59 @@
     }
   };
 
+  const transferLogInterface = {
+    title: '',
+    width: '5%',
+    sorting: false,
+    edit: false,
+    create: false,
+    display: function (orthancData) {
+      var $img = $('<img src="../../../images/log-icon.png" title="View Dicom Transfer of Orthanc" width="30" height="auto"/>');
+      $img.mouseover(function () {
+        $(this).css({'cursor': 'pointer'});
+      });
+      $img.click(function () {
+        $('#HospitalTableContainer').jtable('openChildTable', $img.closest('tr'), {
+          title: 'Dicom Transfer Log',
+          paging: true,
+          pageSize: 10,
+          actions: {
+            listAction: '/api/dicomtransferlog/list?orthancId=' + orthancData.record.id,
+            deleteAction: '/api/dicomtransferlog/delete',
+          },
+          recordsLoaded: (event, data) => {
+            console.log(data);
+          },
+          fields: {
+            createdAt: {
+              title: 'Data Time',
+              width: '10%',
+              type: 'date',
+              displayFormat: 'yyyy-mm-dd',
+              visibility: 'fixed'
+            },
+            DicomTags: {
+              title: 'Tags',
+              width: '*',
+            }
+          }
+        }, function (data) { //opened handler
+          data.childTable.jtable('load');
+        });
+      });
+      return $img;
+    }
+  };
+
   function testPostApi(url) {
-    $.post({url}, {test: 'test foo'}, function(response){
-      console.log(JSON.stringify(response));
-		}).catch((err) => {
-			console.log(JSON.stringify(err));
-		})
+    return new Promise(function(resolve, reject) {
+      $.get({url}, {test: 'test foo'}, function(response){
+        resolve(response);
+  		}).catch((err) => {
+  			console.log(JSON.stringify(err));
+        reject(err);
+  		})
+    });
   }
 
   function testGetApi(url) {
