@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="/favicon.ico" rel="shortcut icon" type="image/x-icon"/>
+    <title>Rad Connext</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  	<script type="text/javascript" src="../../lib/jquery.js"></script>
+  	<script type="text/javascript" src="../../lib/jquery-ui.min.js"></script>
+  	<script type="text/javascript" src="../../lib/jquery.loading.min.js"></script>
+    <script type="text/javascript" src="../../lib/notify.min.js"></script>
+    <link rel='stylesheet' href='../../lib/jquery-ui.min.css' />
+    <link rel='stylesheet' href='../../stylesheets/style.css' />
+  </head>
+  <body>
+    <div id="radconnext-howto-div">
+    	<img src="../../images/multy-user.png" width="50px" heigth="auto"/>
+    </div>
+    <div id="HospitalSelector">
+      <select id="hospital"></select>
+    </div>
+    <div id="UserRegisterAccount">
+      <div class="InputField">
+        <label>Username :</label>
+        <input type="text" id="username" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>Password :</label>
+        <input type="password" id="password1" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>Retry-Password :</label>
+        <input type="password" id="password2" size="30"/>
+      </div>
+      <div class="SubmitField">
+        <input type="button" id="RegisterAccountCmd" value="Verify Username"/>
+      </div>
+    </div>
+    <div id="UserRegisterInfo">
+      <div class="InputField">
+        <label>NameEN :</label>
+        <input type="text" id="NameEN" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>LastNameEN :</label>
+        <input type="text" id="LastNameEN" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>NameTH :</label>
+        <input type="text" id="NameTH" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>LastNameTH :</label>
+        <input type="text" id="LastNameTH" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>Email :</label>
+        <input type="text" id="Email" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>Phone :</label>
+        <input type="text" id="Phone" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>LineID :</label>
+        <input type="text" id="LineID" size="30"/>
+      </div>
+      <div class="InputField">
+        <label>User Type :</label>
+        <select id="UserType"></select>
+      </div>
+      <div class="SubmitField">
+        <input type="button" id="RegisterInfoCmd" value="Register"/>
+      </div>
+    </div>
+  </body>
+</html>
+<style>
+  #HospitalSelector{}
+  #UserRegisterAccount{display: block;}
+  #UserRegisterInfo{display: none;}
+  .InputField{padding: 4px;}
+  .SubmitField{padding: 4px; text-align: center;}
+</style>
+<script type="text/javascript">
+  function doGetApi(url) {
+    return new Promise(function(resolve, reject) {
+      $.get(url, {test: 'test foo'}, function(response){
+        resolve(response);
+      })
+    });
+  }
+
+  function doVerifyUsername(){
+    let username = $("#username").val();
+    if (username) {
+      $.get('/api/users/searchusername/' + username, {}, function(response){
+        console.log(JSON.stringify(response));
+        if((response.status.code === 200) && (response.result.length === 0)) {
+          let password1 = $("#password1").val();
+          let password2 = $("#password2").val();
+          if (password1 === password2) {
+            doGetApi('/api/usertypes/options').then((typeoptions) => {
+              $("#UserRegisterAccount").hide();
+              $("#UserRegisterInfo").show();
+              let Options = typeoptions.Options;
+              Options.forEach((item, i) => {
+                $("#UserType").append("<option value='" + item.Value + "'>" + item.DisplayText + "</option>");
+              });
+            });
+          } else {
+            $("#password1").css({'border': '1px solid red'});
+            $("#password2").css({'border': '1px solid red'});
+          }
+        } else {
+          $("#username").css({'border': '1px solid red'});
+        }
+      });
+    } else {
+      $("#username").css({'border': '1px solid red'});
+    }
+  }
+
+  function doRegisterUser(){
+    let NameEN = $("#NameEN").val();
+    let LastNameEN = $("#LastNameEN").val();
+    let NameTH = $("#NameTH").val();
+    let LastNameTH = $("#LastNameTH").val();
+    let Email = $("#Email").val();
+    let Phone = $("#Phone").val();
+    let LineID = $("#LineID").val();
+    let UserType = $("#UserType").val();
+    let Hospital = $("#hospital").val();
+    let username = $("#username").val();
+    let password = $("#password1").val();
+    let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
+    $.post('/api/users', params, function(response){
+      console.log(response);
+      alert('Thank you.')
+      $("#UserRegisterAccount").show();
+      $("#UserRegisterInfo").hide();
+      $("#username").val('');
+      $("#password1").val('');
+      $("#password2").val('');
+      $("#UserRegisterAccount").append("<div>Your Token is ::</div><div style='color: blue;'>" + response.token + "</div>");
+    });
+  }
+
+  $(document).ready(function () {
+    doGetApi('/api/hospital/options').then((result) => {
+      result.Options.forEach((item, i) => {
+        $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
+      });
+    });
+
+    $("#RegisterAccountCmd").on('click',doVerifyUsername);
+    $("#RegisterInfoCmd").on('click',doRegisterUser);
+  });
+</script>

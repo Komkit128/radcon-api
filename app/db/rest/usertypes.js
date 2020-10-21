@@ -13,6 +13,26 @@ var db, Usertype, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
+const doGenOptions = function() {
+  return new Promise(function(resolve, reject) {
+    const promiseList = new Promise(async function(resolve, reject) {
+      const types = await Usertype.findAll({ attributes: ['id', 'UserType_Name'] });
+      const result = [];
+      types.forEach((type, i) => {
+        result.push({Value: type.id, DisplayText: type.UserType_Name});
+      });
+      setTimeout(()=> {
+        resolve({Result: "OK", Options: result});
+      },200);
+    });
+    Promise.all([promiseList]).then((ob)=> {
+      resolve(ob[0]);
+    }).catch((err)=>{
+      reject(err);
+    });
+  });
+}
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
@@ -83,22 +103,16 @@ app.post('/(:subAction)', (req, res) => {
   }
 });
 
-app.get('/options', async (req, res) => {
-  const types = await Usertype.findAll({ attributes: ['id', 'UserType_Name'] });
-  const result = [];
-  types.forEach((type, i) => {
-    result.push({Value: type.id, DisplayText: type.UserType_Name});
-  });
-  res.json({Result: "OK", Options: result});
+app.get('/options', (req, res) => {
+  doGenOptions().then((result) => {
+    res.json(result);
+  })
 });
 
 app.post('/options', async (req, res) => {
-  const types = await Usertype.findAll({ attributes: ['id', 'UserType_Name'] });
-  const result = [];
-  types.forEach((type, i) => {
-    result.push({Value: type.id, DisplayText: type.UserType_Name});
-  });
-  res.json({Result: "OK", Options: result});
+  doGenOptions().then((result) => {
+    res.json(result);
+  })
 });
 
 module.exports = ( dbconn, monitor ) => {

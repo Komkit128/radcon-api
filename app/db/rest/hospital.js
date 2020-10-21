@@ -12,6 +12,26 @@ var db, Hospital, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
+const doGenOptions = function() {
+  return new Promise(function(resolve, reject) {
+    const promiseList = new Promise(async function(resolve, reject) {
+      const hoses = await Hospital.findAll({ attributes: ['id', 'Hos_Name'] });
+      const result = [];
+      hoses.forEach((hos, i) => {
+        result.push({Value: hos.id, DisplayText: hos.Hos_Name});
+      });
+      setTimeout(()=> {
+        resolve({Result: "OK", Options: result});
+      },200);
+    });
+    Promise.all([promiseList]).then((ob)=> {
+      resolve(ob[0]);
+    }).catch((err)=>{
+      reject(err);
+    });
+  });
+}
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
@@ -83,6 +103,18 @@ app.post('/(:subAction)', (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
+});
+
+app.get('/options', (req, res) => {
+  doGenOptions().then((result) => {
+    res.json(result);
+  })
+});
+
+app.post('/options', async (req, res) => {
+  doGenOptions().then((result) => {
+    res.json(result);
+  })
 });
 
 module.exports = ( dbconn, monitor ) => {

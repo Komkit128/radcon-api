@@ -17,7 +17,8 @@ app.set('view engine', 'ejs');
 /* GET users listing. */
 app.get('/', function(req, res) {
   //res.send('respond with a resource');
-  res.render('users', {});
+  console.log('test');
+  res.render('users', {title: 'Rad Connext'});
 });
 
 module.exports = app;

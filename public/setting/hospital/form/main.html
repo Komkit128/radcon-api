@@ -112,6 +112,7 @@
           pageSize: 10,
           actions: {
             listAction: '/api/user/list?hospitalId=' + hospitalData.record.id,
+            createAction: '/api/user/add',
             updateAction: '/api/user/update',
             deleteAction: '/api/user/delete',
             /*
@@ -158,8 +159,7 @@
             username: {
               title: 'Username',
               width: '10%',
-              edit: false,
-              visibility: 'fixed'
+              list: false,
             },
             NameEN: {
               title: 'name',

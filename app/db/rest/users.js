@@ -108,9 +108,9 @@ app.post('/', function(req, res) {
   let newUsername = req.body.username;
   auth.doExistUser(newUsername).then(async (users) => {
     if (users.length === 0) {
-      let rootname = req.originalUrl.split('/')[1];
+      let hospitalId = req.body.hospitalId;
       try {
-        auth.doGetHospitalFromRootUri(rootname).then((hospitals) => {
+        auth.doGetHospitalFromId(hospitalId).then((hospitals) => {
           let usertypeId = req.body.usertypeId;
           auth.doGetUsertypeById(usertypeId).then((usertypes) => {
             auth.doGetUserstatusActive().then(async (userstatuses) => {

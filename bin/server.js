@@ -65,7 +65,7 @@ mainApp.use('/', express.static(__dirname + '/../public'));
   mainApp.use('/api/login', login);
 
   //const util = require(__dirname + '/../app/lib/mod/util.js')(log);
-  mainApp.use('/app', app);
+  //mainApp.use('/app', app);
   mainApp.get('/', (req, res) => {
     const hostname = req.headers.host;
   	const rootname = req.originalUrl.split('/')[1];

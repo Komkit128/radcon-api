@@ -56,10 +56,10 @@ const doDecodeToken = function(token){
   });
 }
 
-const doGetHospitalFromRootUri = function (rootname){
+const doGetHospitalFromId = function (id){
   return new Promise(async function(resolve, reject) {
     try {
-      const hosp = await Hospitals.findAll({ where: {	Hos_RootPathUri: rootname}});
+      const hosp = await Hospital.findAll({ where: {	id: id}});
       resolve(hosp);
     } catch(error) {
       reject(error)
@@ -91,8 +91,8 @@ const doGetUserstatusActive = function(){
 
 const setSaltAndPassword = user => {
   if (user.changed('password')) {
-    user.salt = users.generateSalt()
-    user.password = users.encryptPassword(user.password(), user.salt())
+    user.salt = User.generateSalt()
+    user.password = User.encryptPassword(user.password(), user.salt())
   }
 }
 
@@ -130,7 +130,7 @@ module.exports = ( dbconn, monitor ) => {
     doVerifyUser,
     doEncodeToken,
     doDecodeToken,
-    doGetHospitalFromRootUri,
+    doGetHospitalFromId,
     doGetUsertypeById,
     doGetUserstatusActive
   }
