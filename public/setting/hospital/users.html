@@ -94,7 +94,6 @@
     let username = $("#username").val();
     if (username) {
       $.get('/api/users/searchusername/' + username, {}, function(response){
-        console.log(JSON.stringify(response));
         if((response.status.code === 200) && (response.result.length === 0)) {
           let password1 = $("#password1").val();
           let password2 = $("#password2").val();
@@ -102,6 +101,7 @@
             doGetApi('/api/usertypes/options').then((typeoptions) => {
               $("#UserRegisterAccount").hide();
               $("#UserRegisterInfo").show();
+              $("#UserType").empty();
               let Options = typeoptions.Options;
               Options.forEach((item, i) => {
                 $("#UserType").append("<option value='" + item.Value + "'>" + item.DisplayText + "</option>");
@@ -120,7 +120,7 @@
     }
   }
 
-  function doRegisterUser(){
+  function doValidateForm() {
     let NameEN = $("#NameEN").val();
     let LastNameEN = $("#LastNameEN").val();
     let NameTH = $("#NameTH").val();
@@ -132,17 +132,61 @@
     let Hospital = $("#hospital").val();
     let username = $("#username").val();
     let password = $("#password1").val();
-    let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
-    $.post('/api/users', params, function(response){
-      console.log(response);
-      alert('Thank you.')
-      $("#UserRegisterAccount").show();
-      $("#UserRegisterInfo").hide();
-      $("#username").val('');
-      $("#password1").val('');
-      $("#password2").val('');
-      $("#UserRegisterAccount").append("<div>Your Token is ::</div><div style='color: blue;'>" + response.token + "</div>");
-    });
+    if (NameEN !== ''){
+      if (LastNameEN !== ''){
+        if (NameTH !== ''){
+          if (LastNameTH !== ''){
+            if (Email !== ''){
+              if (Phone !== ''){
+                if (LineID !== ''){
+                  let params = {User_NameEN: NameEN, User_LastNameEN: LastNameEN, User_NameTH: NameTH, User_LastNameTH: LastNameTH, User_Email: Email, User_Phone: Phone, User_LineID: LineID, User_PathRadiant: '/path/to/khow', usertypeId: UserType, hospitalId: Hospital, username: username, password: password};
+                  return params;
+                } else {
+                  $("#LineID").css({'border': '1px solid red'});
+                  return;
+                }
+              } else {
+                $("#Phone").css({'border': '1px solid red'});
+                return;
+              }
+            } else {
+              $("#Email").css({'border': '1px solid red'});
+              return;
+            }
+          } else {
+            $("#LastNameTH").css({'border': '1px solid red'});
+            return;
+          }
+        } else {
+          $("#NameTH").css({'border': '1px solid red'});
+          return;
+        }
+      } else {
+        $("#LastNameEN").css({'border': '1px solid red'});
+        return;
+      }
+    } else {
+      $("#NameEN").css({'border': '1px solid red'});
+      return;
+    }
+  }
+
+  function doRegisterUser(){
+    let params = doValidateForm();
+    if (params) {
+      $.post('/api/users', params, function(response){
+        console.log(response);
+        alert('Thank you.')
+        $("#UserRegisterAccount").show();
+        $("#UserRegisterInfo").hide();
+        $("#username").val('');
+        $("#password1").val('');
+        $("#password2").val('');
+        $("#UserRegisterAccount").append("<div>Your Token is ::</div><div style='color: blue;'>" + response.token + "</div>");
+      });
+    } else {
+
+    }
   }
 
   $(document).ready(function () {

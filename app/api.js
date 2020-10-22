@@ -59,6 +59,8 @@ module.exports = ( webSocketServer, monitor ) => {
 	const dicomtransferlog = require('./db/rest/dicomtransferlog.js')(db, log);
 	const patient = require('./db/rest/patient.js')(db, log);
 	const casestatus = require('./db/rest/casestatus.js')(db, log);
+	const cases = require('./db/rest/cases.js')(db, log);
+
 	apiApp.use('/users', users);
 	apiApp.use('/user', user);
 	apiApp.use('/usertypes', usertypes);
@@ -72,5 +74,7 @@ module.exports = ( webSocketServer, monitor ) => {
 	apiApp.use('/dicomtransferlog', dicomtransferlog);
 	apiApp.use('/patient', patient);
 	apiApp.use('/casestatus', casestatus);
+	apiApp.use('/cases', cases);
+
 	return { api: apiApp, db: db };
 }

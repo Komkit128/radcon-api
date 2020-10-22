@@ -62,7 +62,7 @@ module.exports = function (app) {
 		var command = parseStr(' rm %s', imgPath);
 		runcommand(command).then((stdout) => {
 			//var link = 'http://' + req.headers.host + '/' + rootname + '/res' + DWLD + '/' + newFileName;
-			var link =  '/' + rootname + DWLD + '/' + newFileName;
+			var link =  DWLD + '/' + newFileName;
 			res.status(200).send({status: {code: 200}, text: 'ok baby.', link: link});
 
 		}).catch((err) => {
@@ -88,8 +88,6 @@ module.exports = function (app) {
 
 	app.post('/captureupload', upload.array('picture'), function(req, res) {
 
-		const rootname = req.originalUrl.split('/')[1];
-
 		var filename = req.files[0].originalname;
 		var fullnames = filename.split('.');
 
@@ -100,10 +98,10 @@ module.exports = function (app) {
 		var writeStream = fs.createWriteStream(newPath);
 		readStream.pipe(writeStream);
 
-		var command = parseStr(' rm %s', imgPath);
+		var command = parseStr('rm %s', imgPath);
 		runcommand(command).then((stdout) => {
-			//var link = 'http://' + req.headers.host + '/' + rootname + '/res' + DWLD + '/' + newFileName;
-			var link =  '/' + rootname + DWLD + '/' + newFileName;
+
+			var link =  DWLD + '/' + newFileName;
 			res.status(200).send({status: {code: 200}, text: 'ok baby.', link: link});
 
 		}).catch((err) => {
@@ -114,8 +112,6 @@ module.exports = function (app) {
 
 	app.post('/editionupload', upload.array('picture'), function(req, res) {
 
-		const rootname = req.originalUrl.split('/')[1];
-
 		var filename = req.files[0].originalname;
 		var fullnames = filename.split('.');
 
@@ -126,11 +122,11 @@ module.exports = function (app) {
 		var writeStream = fs.createWriteStream(newPath);
 		readStream.pipe(writeStream);
 
-		var command = parseStr(' rm %s', imgPath);
+		var command = parseStr('rm %s', imgPath);
 		runcommand(command).then((stdout) => {
-			//var link = 'http://' + req.headers.host + '/' + rootname + '/res' + DWLD + '/' + newFileName;
-			var link =  '/' + rootname + DWLD + '/' + newFileName;
-			res.status(200).send({status: {code: 200}, text: 'ok baby.', link: link});
+			var link =  DWLD + '/' + newFileName;
+      console.log(link);
+      res.status(200).send({status: {code: 200}, text: 'ok baby.', link: link});
 
 		}).catch((err) => {
 			console.log('err: 500 >>', err);
