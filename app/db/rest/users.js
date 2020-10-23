@@ -81,10 +81,14 @@ app.put('/changepassword', async (req, res) => {
   if (token !== 'null') {
     auth.doDecodeToken(token).then(async (ur) => {
       if (ur.length > 0){
-        let newPassword = req.body.password;
         try {
-          const hospitals = await User.update({password: newPassword}, { where: { username: ur[0].sub } });
-          res.json({status: {code: 200}, hospitals: hospitals});
+          let yourNewPassword = req.body.password;
+          let yourUser = await User.findAll({ where: {	username: ur[0].sub}});
+          let yourSalt = yourUser.salt();
+          let yourEncryptPassword = User.encryptPassword(yourNewPassword, yourSalt);
+          log.info('yourEncryptPassword => ' + yourEncryptPassword);
+          await User.update({password: yourEncryptPassword}, { where: { username: ur[0].sub } });
+          res.json({status: {code: 200}});
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});

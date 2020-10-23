@@ -48,7 +48,13 @@ const setSaltAndPassword = user => {
 users.beforeCreate(setSaltAndPassword)
 users.beforeUpdate(setSaltAndPassword)
 users.prototype.correctPassword = function(enteredPassword) {
-  return users.encryptPassword(enteredPassword, this.salt()) === this.password()
+  const encryptYourPassword = users.encryptPassword(enteredPassword, this.salt());
+  /*
+  log.info('this password => ' + this.password())
+  log.info('enteredPassword=>' + enteredPassword);
+  log.info('encryptYourPassword=>' + encryptYourPassword);
+  */
+  return  encryptYourPassword === this.password()
 }
 
 const userinfoes = sequelize.define('userinfoes', Def.RadUserInfoDef);

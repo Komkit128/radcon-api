@@ -13,6 +13,21 @@ var db, Patient, log, auth;
 
 const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 
+const doSearchByKey = function(key) {
+  return new Promise(async (resolve, reject) => {
+    const patient = await Patient.findAll({ attributes: excludeColumn, where: key });
+    resolve(patient);
+  });
+}
+
+//Swarch API
+app.post('/search', (req,res) => {
+  let keyPair = req.body.key;
+  doSearchByKey(keyPair).then((result) => {
+    res.json({Result: "OK", Records: result});
+  });
+})
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;

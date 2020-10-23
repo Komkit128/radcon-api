@@ -171,6 +171,9 @@ const RadPatientDef = {
 				type: Sequelize.STRING(50),
 				allowNull: false
 			},
+			Patient_ACC : {
+				type: Sequelize.STRING(50)
+			},
 			Patient_NameTH : {
 				type: Sequelize.STRING(80),
 				allowNull: false
@@ -203,9 +206,6 @@ const RadPatientDef = {
 			},
 			Patient_Address : {
 				type: Sequelize.STRING
-			},
-			Patient_YYYYMM : {
-				type: Sequelize.STRING(6)
 			}
 		};
 
@@ -267,17 +267,12 @@ const RadTemplateDef = {
 //Case_CSID
 //Case_UGTypeID
 //Case_UserID
-//Case_RadRefferalDoctor
 //Case_CRID
-//Case_RadRadiologist
 
 const RadCaseDef = {
       Case_OrthancStudyID : {
 				type: Sequelize.UUID,
 				allowNull: false
-			},
-			Case_DESC : {
-				type: Sequelize.TEXT
 			},
 			Case_BodyPart : {
 				type: Sequelize.STRING(150)
@@ -291,7 +286,7 @@ const RadCaseDef = {
 			Case_ProtocolName : {
 				type: Sequelize.STRING(130)
 			},
-			Case_SeriesDescription : {
+			Case_StudyDescription : {
 				type: Sequelize.STRING(130)
 			},
 			Case_StationName : {
@@ -299,6 +294,29 @@ const RadCaseDef = {
 			},
 			Case_PatientHRLink : {
 				type: Sequelize.JSON,
+			},
+			Case_RadiologistId : {
+				type: Sequelize.INTEGER,
+				allowNull: false
+			},
+			Case_RefferalId : {
+				type: Sequelize.INTEGER,
+				allowNull: false
+			},
+			Case_RefferalName : {
+				type: Sequelize.STRING(80),
+				allowNull: false
+			},
+			Case_Department : {
+				type: Sequelize.STRING(80),
+				allowNull: false
+			},
+			Case_Price : {
+				type: Sequelize.FLOAT,
+				allowNull: false
+			},
+			Case_DESC : {
+				type: Sequelize.TEXT
 			}
 		};
 

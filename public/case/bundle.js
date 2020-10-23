@@ -575,7 +575,6 @@ module.exports = function ( jq ) {
 	function doCallApi(url, rqParams) {
 		return new Promise(function(resolve, reject) {
 			apiconnector.doCallApi(url, rqParams).then((response) => {
-				console.log('response', response);
 				resolve(response);
 			}).catch((err) => {
 				console.log(JSON.stringify(err));
@@ -1785,7 +1784,10 @@ module.exports = function ( jq ) {
 				options.rades.forEach((item) => {
 					$("#dr-reader").append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
 				})
-
+				options.refes.forEach((item) => {
+					console.log(item);
+					$("#dr-owner-select").append($('<option value="' + item.Value + '">' + item.DisplayText + '</option>'));
+				})
 				$("#OpenFileDialog-Cmd").click(function(){
 					doOpenSelectFile();
 				});
@@ -1838,20 +1840,17 @@ module.exports = function ( jq ) {
 		if (newCaseData) {
 			$('body').loading('start');
 			try {
-				const main = require('../main.js');
-				const username = main.doGetUserData().username;
-				let transferRes = await apiconnector.doCallTransferDicom(newCaseData.studyID, username);
-				console.log(transferRes);
-				if (transferRes.cloud.link) {
-					console.log(transferRes.local.link);
-					console.log(transferRes.cloud.link);
+				let rqParams = {key: {Patient_HN: newCaseData.hn}};
+				let patientdb = await doCallApi('/api/patient/search', rqParams);
+				console.log(patientdb);
 
+				/*
 					const main = require('../main.js');
 					newCaseData.username = main.doGetUserData().username;
 					newCaseData.curr_host_id = main.doGetUserData().org[0].id;
 					newCaseData.status = '';
 					let zipFileName = newCaseData.studyID + '.zip';
-					let rqParams = doPrepareCaseParams(newCaseData, zipFileName);
+					rqParams = doPrepareCaseParams(newCaseData, zipFileName);
 					console.log(rqParams);
 					let apiName = 'save_new_inc';
 					let response = await doCallApi(apiName, rqParams);
@@ -1876,10 +1875,8 @@ module.exports = function ( jq ) {
 						alert('API Server ขัดข้อง');
 						$('body').loading('stop');
 					}
-				}else {
-					alert('Transfer Dicom File ขัดข้อง');
-					$('body').loading('stop');
-				}
+						*/
+
 			} catch(e) {
         console.log('Unexpected error occurred =>', e);
         $('body').loading('stop');

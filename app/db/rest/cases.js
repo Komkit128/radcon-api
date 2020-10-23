@@ -54,6 +54,13 @@ const doGenNewCaseOptions = function(hospitalId) {
   });
 }
 
+const doCallCaseStatusByName = function(Name) {
+  return new Promise(async (resolve, reject) => {
+    const casestatus = await db.casestatuses.findAll({ attributes: excludeColumn, where: {CS_Name_EN: Name} });
+    resolve(casestatus);
+  });
+}
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
@@ -99,9 +106,14 @@ app.post('/(:subAction)', (req, res) => {
         try {
           switch (subAction) {
             case 'add':
-              let newCase = req.body;
-              let adCase = await Case.create(newCase);
-              res.json({Result: "OK", Record: adCase});
+              doCallCaseStatusByName('New').then(async (newcase) => {
+                let newCase = req.body.data;
+                let adCase = await Case.create(newCase);
+                let setupCaseTo = { hospitalId: req.body.hospitalId, patientId: req.body.patientId, userId: req.body.userId, cliamerightId: req.body.cliamerightId, urgenttypeId: req.body.urgenttypeId};
+                await Case.update(setupCaseTo, { where: { id: adCase.id } });
+                await user[0].setUserstatus(status[0]);
+                res.json({Result: "OK", Record: adCase});
+              });
             break;
             case 'update':
               let updateCase = req.body;

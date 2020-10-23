@@ -20,6 +20,7 @@ const doExistUser = function(username){
 const doVerifyUser = function (username, password) {
   return new Promise(function(resolve, reject) {
     doExistUser(username).then((users) => {
+      //log.info(users);
       if (users.length > 0) {
         const isCorect = users[0].correctPassword(password);
         resolve({ result: isCorect, data: users[0] });
@@ -96,33 +97,24 @@ const setSaltAndPassword = user => {
   }
 }
 
+const resetAdmin = async () => {
+  let yourNewPassword = 'Limparty';
+  let anyuser = await User.findAll({ where: {	username: 'limparty'}});
+  let yourSalt = anyuser[0].salt();
+  let yourEncryptPassword = User.encryptPassword(yourNewPassword, yourSalt);
+  log.info('syourEncryptPassword => ' + yourEncryptPassword);
+  await User.update({password: yourEncryptPassword}, { where: { username: 'limparty' } });
+}
+
 module.exports = ( dbconn, monitor ) => {
   db = dbconn;
   log = monitor;
-  //User = db.sequelize.define('users', db.Def.RadUserDef);
-  //Hospital = db.sequelize.define('hospitals', db.Def.RadHospitalDef);
-  //Usertype = db.sequelize.define('usertypes', db.Def.RadUserTypeDef);
-  //Userstatus = db.sequelize.define('userstatuses', db.Def.RadUserStatusDef);
+
   User = db.users;
   Hospital = db.hospitals;
   Usertype = db.usertypes;
   Userstatus = db.userstatuses;
   Userinfo = db.userinfoes
-  User.generateSalt = function() {
-    return crypto.randomBytes(16).toString('base64')
-  }
-  User.encryptPassword = function(plainText, salt) {
-    return crypto
-      .createHash('RSA-SHA256')
-      .update(plainText)
-      .update(salt)
-      .digest('hex')
-  }
-  User.beforeCreate(setSaltAndPassword)
-  User.beforeUpdate(setSaltAndPassword)
-  User.prototype.correctPassword = function(enteredPassword) {
-    return User.encryptPassword(enteredPassword, this.salt()) === this.password()
-  }
 
   return {
     setSaltAndPassword,
@@ -132,6 +124,7 @@ module.exports = ( dbconn, monitor ) => {
     doDecodeToken,
     doGetHospitalFromId,
     doGetUsertypeById,
-    doGetUserstatusActive
+    doGetUserstatusActive,
+    resetAdmin
   }
 }

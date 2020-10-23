@@ -112,7 +112,7 @@
           pageSize: 10,
           actions: {
             listAction: '/api/user/list?hospitalId=' + hospitalData.record.id,
-            createAction: '/api/user/add',
+            /* createAction: '/api/user/add', */
             updateAction: '/api/user/update',
             deleteAction: '/api/user/delete',
             /*
@@ -159,7 +159,8 @@
             username: {
               title: 'Username',
               width: '10%',
-              list: false,
+              list: true,
+              edit: false,
             },
             NameEN: {
               title: 'name',
@@ -393,6 +394,11 @@
               width: '10%',
               visibility: 'fixed'
             },
+            Patient_ACC: {
+              title: 'ACC',
+              width: '10%',
+              visibility: 'fixed'
+            },
             Patient_NameTH: {
               title: 'ชื่อ',
               width: '10%',
@@ -444,12 +450,7 @@
               type: 'textarea',
               width: '10%',
               visibility: 'hidden'
-            },
-            Patient_YYYYMM: {
-              title: 'YYYYMM',
-              width: '*',
-              visibility: 'hidden'
-            },
+            }
           }
         }, function (data) { //opened handler
           data.childTable.jtable('load');

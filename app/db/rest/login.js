@@ -23,7 +23,7 @@ app.post('/', (req, res) => {
     //log.info('your result => ' + JSON.stringify(result));
     if (result.result === true) {
       const yourToken = auth.doEncodeToken(username);
-      res.json({status: {code: 200}, success: true, token: yourToken, rooturi: result.rooturi, data: result.data });
+      res.json({status: {code: 200}, success: true, token: yourToken, data: result.data });
     } else {
       res.json({status: {code: 200}, success: false});
     }

@@ -57,7 +57,8 @@ function doLogin(){
 		doCallLoginApi(user).then((response) => {
 			// var resBody = JSON.parse(response.res.body); <= ใช้ในกรณีเรียก API แบบ By Proxy
 			//var resBody = JSON.parse(response); <= ใช้ในกรณีเรียก API แบบ Direct
-
+      console.log(response);
+      
 			if (response.success == false) {
 				$('input[type="text"]').css({"border":"2px solid red","box-shadow":"0 0 3px red"});
 				$('input[type="password"]').css({"border":"2px solid #00F5FF","box-shadow":"0 0 5px #00F5FF"});

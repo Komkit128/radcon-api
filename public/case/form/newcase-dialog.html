@@ -44,14 +44,14 @@
         <tr>
           <td align="left" class="input-label">แพทย์เจ้าของไข้</td>
           <td align="left">
-            <div id="dr-owner-select">
-              <select id="dr-owner">
-                <option value="0">เลือกจากรายชื่อหมอ</option>
+            <div id="dr-owner-select-div">
+              <select id="dr-owner-select">
+                <option value="-1">เลือกหมอ</option>
               </select>&nbsp;&nbsp;
               <input type="button" id="toggle-dr-owner-cmd" value="เพิ่มหมอ"/>
             </div>
-            <div id="dr-owner-text">
-              <input type="text" id="dr-owner" size="20"/>
+            <div id="dr-owner-text-div">
+              <input type="text" id="dr-owner-text" size="20"/>
             </div>
           </td>
           <td align="left" class="input-label">แผนก</td>
@@ -106,6 +106,10 @@
       <input type="hidden" id="mdl"/>
       <input type="hidden" id="patient-history"/>
       <input type="hidden" id="studyID"/>
+      <input type="hidden" id="studyDesc"/>
+      <input type="hidden" id="protocalName"/>
+      <input type="hidden" id="manufacturer"/>
+      <input type="hidden" id="stationName"/>
       <input type="hidden" id="caseID"/>
     </div>
     <div class="modal-footer">
@@ -206,17 +210,24 @@
     let hn = $('#hn').val();
     let acc = $('#acc').val();
     let department = $('#department').val();
-    let drOwner = $('#dr-owner').val();
+    let drOwner = $('#dr-owner-select').val();
     let bodyPart = $('#bodypart').val();
     let drReader = $('#dr-reader').val();
     let urgentType = $('#urgent-type').val();
     let detail = $('#detail').val();
-
-    let patientHistory = $('#patient-history').val();
+    let historyLinks = $('#patient-history').val().split(',');
+    let patientHistory = [];
+    historyLinks.forEach((item, i) => {
+      patientHistory.push({link: item});
+    });
     let studyID = $('#studyID').val();
     let mdl = $('#mdl').val();
+    let studyDesc = $('#studyDes').val();
+    let protocalName = $('#protocalName').val();
+    let manufacturer = $('#manufacturer').val();
+    let stationName = $('#stationName').val();
 
-    console.log(/^[a-zA-Z]\w{1,65}$/.test(patientNameEN));
+    //console.log(/^[a-zA-Z]\w{1,65}$/.test(patientNameEN));
     resetFieldValidate();
 
     if (!(/^[a-zA-Z]\w{1,65}$/.test(patientNameEN))) {
@@ -239,13 +250,18 @@
       $("#urgent-type").notify("โปรดเลือกความเร่งด่วน", "error");
       $('#urgent-type').focus();
       return false;
+    } else if (drOwner === '-1') {
+      $('#dr-owner-select').css("border","4px solid red");
+      $("#dr-owner-select").notify("โปรดเลือกแพทย์เจ้าของไข้", "error");
+      $('#dr-owner-select').focus();
+      return false;
     } else if (drReader === '-1') {
       $('#dr-reader').css("border","4px solid red");
       $("#dr-reader").notify("โปรดเลือกรังสีแพทย์", "error");
       $('#dr-reader').focus();
       return false;
     } else {
-      let newCase = {patientNameTH, patientNameEN, patientHistory, studyID, patientSex, patientAge, patientRights, price, hn, acc, department, drOwner, bodyPart, drReader, urgentType, detail, mdl};
+      let newCase = {patientNameTH, patientNameEN, patientHistory, studyID, patientSex, patientAge, patientRights, price, hn, acc, department, drOwner, bodyPart, drReader, urgentType, detail, mdl, studyDesc, protocalName, manufacturer, stationName};
       //console.log(newCase);
       return newCase;
     }
@@ -255,6 +271,7 @@
     $('#patient-name-en').css("border","");
     $('#patient-rights').css("border","");
     $('#price').css("border","");
+    $('#dr-owner-select').css("border","");
     $('#dr-reader').css("border","");
     $('#urgent-type').css("border","");
   }
@@ -384,6 +401,6 @@
     content: "\00d7"; /* This will render the 'X' */
   }
 
-  #dr-owner-select{display: block;}
-  #dr-owner-text{display: none;}
+  #dr-owner-select-div{display: block;}
+  #dr-owner-text-div{display: none;}
 </style>
