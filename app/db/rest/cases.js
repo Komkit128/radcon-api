@@ -103,19 +103,20 @@ app.post('/filter', (req, res) => {
           const statusId = req.body.statusId;
           const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType_Name']}];
           const cases = await Case.findAll({include: caseInclude, where: {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }}});
+          const casesFormat = [];
           const promiseList = new Promise(async function(resolve, reject) {
             cases.forEach(async (item, i) => {
-              const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {userlId: item.Case_RadiologistId}});
-              item.Radiologist = rades[0];
-              const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {userlId: item.Case_RefferalId}});
-              item.Refferal = refes[0];
+              const radUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RadiologistId}});
+              const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: radUser[0].userinfoId}});
+              const refUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RefferalId}});
+              const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
+              casesFormat.push({case: item, Radiologist: rades[0], Refferal: refes[0]});
             });
             setTimeout(()=> {
-              resolve(cases);
+              resolve(casesFormat);
             },500);
           });
           Promise.all([promiseList]).then((ob)=> {
-            log.info('ob=>'+ JSON.stringify(ob[0]));
             res.json({status: {code: 200}, Records: ob[0]});
           }).catch((err)=>{
             reject(err);

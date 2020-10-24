@@ -72,6 +72,10 @@
         <input type="button" id="RegisterInfoCmd" value="Register"/>
       </div>
     </div>
+    <div id="BackCmdDiv">
+      <input type="button" id="EditUserCmd" value="Edit"/>
+      <input type="button" id="BackCmd" value="Back"/>
+    </div>
   </body>
 </html>
 <style>
@@ -80,6 +84,8 @@
   #UserRegisterInfo{display: none;}
   .InputField{padding: 4px;}
   .SubmitField{padding: 4px; text-align: center;}
+  #BackCmdDiv{padding: 4px; text-align: center;}
+  #EditUserCmd{display: block;}
 </style>
 <script type="text/javascript">
   function doGetApi(url) {
@@ -189,7 +195,69 @@
     }
   }
 
+  function doBackToSettingHome(){
+    let url = '/setting/hospital/';
+    window.location.replace(url);
+  }
+
+  function doEditUser(){
+    userEditId = 10;
+    doGetApi('/api/usertypes/options').then((typeoptions) => {
+      $("#UserType").empty();
+      let Options = typeoptions.Options;
+      Options.forEach((item, i) => {
+        $("#UserType").append("<option value='" + item.Value + "'>" + item.DisplayText + "</option>");
+      });
+      doGetApi('/api/user/'+userEditId).then((result) => {
+        console.log(result);
+        $("#NameEN").val(result.Record.info.User_NameEN);
+        $("#LastNameEN").val(result.Record.info.User_LastNameEN);
+        $("#NameTH").val(result.Record.info.User_NameTH);
+        $("#LastNameTH").val(result.Record.info.User_LastNameTH);
+        $("#Email").val(result.Record.info.User_Email);
+        $("#Phone").val(result.Record.info.User_Phone);
+        $("#LineID").val(result.Record.info.User_LineID);
+        $("#UserType").val(result.Record.type);
+        $("#UserRegisterAccount").hide();
+        $("#UserRegisterInfo").show();
+        $("#RegisterInfoCmd").hide();
+        let userIdHidden = $("<input type='hidden' id='userEditId'/>");
+        $(userIdHidden).val(result.Record.info.id);
+        $(userIdHidden).appendTo($("#UserRegisterInfo"));
+        let saveButton = $("<input type='button' id='SaveCmd' value=' Save '/>");
+        $(saveButton).appendTo($("#UserRegisterInfo"));
+        $(saveButton).on('click',doUpdateUser);
+        $('#EditUserCmd').hide();
+      });
+    });
+  }
+
+  function doUpdateUser(){
+    let params = doValidateForm();
+    let userEditId = $('#userEditId').val();
+    console.log(userEditId);
+    params.id = userEditId;
+    if (params) {
+      $.post('/api/user/update', params, function(response){
+        console.log(response);
+        alert('Thank you for user update.')
+        $("#UserRegisterAccount").show();
+        $("#UserRegisterInfo").hide();
+        $("SaveCmd").remove();
+        $('#EditUserCmd').show();
+      });
+    } else {
+
+    }
+  }
+
   $(document).ready(function () {
+    $.ajaxSetup({
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader('Authorization', localStorage.getItem('token'));
+      }
+    });
+
     doGetApi('/api/hospital/options').then((result) => {
       result.Options.forEach((item, i) => {
         $("#hospital").append("<option value='" + item.Value + "'>ร.พ. " + item.DisplayText + "</option>");
@@ -198,5 +266,7 @@
 
     $("#RegisterAccountCmd").on('click',doVerifyUsername);
     $("#RegisterInfoCmd").on('click',doRegisterUser);
+    $("#BackCmd").on('click',doBackToSettingHome);
+    $("#EditUserCmd").on('click',doEditUser);
   });
 </script>

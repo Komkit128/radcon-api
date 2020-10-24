@@ -811,18 +811,18 @@ module.exports = function ( jq ) {
 			$(headRow).append($(headColumns));
 			for (let i=0; i < incidents.length; i++) {
 				let dataRow = $('<tr class="case-row"></tr>');
-				let casedatetime = incidents[i].createdAt.split(' ');
+				let casedatetime = incidents[i].case.createdAt.split(' ');
 				let casedateSegment = casedatetime[0].split('-');
 				casedateSegment = casedateSegment.join('');
 				let casedate = util.formatStudyDate(casedateSegment);
 				$(dataRow).append($('<td align="center"><div class="tooltip">'+ casedate + '<span class="tooltiptext">' + casedatetime[1] + '</span></div></td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_NameEN + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_Age + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_Sex + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_HN + '</td>'));
-				$(dataRow).append($('<td align="center">' + incidents[i].Case_Modality + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].Case_ProtocolName + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].urgenttype.UGType_Name + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_NameEN + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_Age + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_Sex + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_HN + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.Case_Modality + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.Case_ProtocolName + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.urgenttype.UGType_Name + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].Refferal.User_NameTH + ' ' + incidents[i].Refferal.User_LastNameTH + '</td>'));
 				/*
 				if (incidents[i].response_dr.indexOf('/') >= 0) {
@@ -833,7 +833,7 @@ module.exports = function ( jq ) {
 				}
 				*/
 				$(dataRow).append($('<td align="center">'+ incidents[i].Radiologist.User_NameTH + ' ' + incidents[i].Radiologist.User_LastNameTH + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].casestatus.CS_Name_EN + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].case.casestatus.CS_Name_EN + '</td>'));
 				let commandCol = $('<td align="center"></td>');
 				$(commandCol).appendTo($(dataRow));
 				$(commandCol).appendTo($(dataRow));

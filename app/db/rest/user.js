@@ -13,6 +13,33 @@ var db, User, log, auth;
 
 const excludeColumn = { exclude: [ 'updatedAt', 'createdAt'] };
 
+//
+app.get('/(:userId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const userId = req.params.userId;
+          const anyUser = await db.users.findAll({ attributes: ['userinfoId', 'usertypeId'], where: {id: userId}});
+          const youUser = await db.userinfoes.findAll({ where: {id: anyUser[0].userinfoId}});
+          let record = {info: youUser[0], type: anyUser[0].usertypeId}
+          res.json({status: {code: 200}, Record: record});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
@@ -80,9 +107,9 @@ app.post('/(:subAction)', (req, res) => {
               res.json({Result: "OK", Record: adUser});
             break;
             case 'update':
-              const anyUser = await User.findAll({ attributes: ['userinfoId'], where: {id: id}});
+              //const anyUser = await User.findAll({ attributes: ['userinfoId'], where: {id: id}});
               let updateUser = req.body;
-              await User.update(updateUser, { where: { id: anyUser[0].userinfoId } });
+              await db.userinfoes.update(updateUser, { where: { id: id } });
               res.json({Result: "OK"});
             break;
             case 'delete':
