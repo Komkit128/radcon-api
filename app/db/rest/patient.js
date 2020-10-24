@@ -73,13 +73,14 @@ app.post('/(:subAction)', (req, res) => {
         try {
           switch (subAction) {
             case 'add':
-              let newPatient = req.body;
+              let newPatient = req.body.data;
               let adPatient = await Patient.create(newPatient);
+              await Patient.update({hospitalId: req.body.hospitalId},{where: {id: adPatient.id}});
               res.json({Result: "OK", Record: adPatient});
             break;
             case 'update':
-              let updatePatient = req.body;
-              await Patient.update(updatePatient, { where: { id: id } });
+              let updatePatient = req.body.data;
+              await Patient.update(updatePatient, { where: { id: req.body.patientId } });
               res.json({Result: "OK"});
             break;
             case 'delete':

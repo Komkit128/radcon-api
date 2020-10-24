@@ -24,7 +24,7 @@
           </td>
           <td align="left">
             <span class="input-label-span">เพศ</span>
-            <select id="patient-sex"><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option></select>
+            <select id="patient-sex"><option value="M">ชาย</option><option value="F">หญิง</option></select>
           </td>
           <td align="left">
             <span class="input-label-span">อายุ</span>
@@ -205,6 +205,7 @@
     let patientNameEN = $('#patient-name-en').val();
     let patientSex = $('#patient-sex').val();
     let patientAge = $('#patient-age').val();
+    patientAge = patientAge.substring(0, (patientAge.length-1));;
     let patientRights = $('#patient-rights').val();
     let price = $('#price').val();
     let hn = $('#hn').val();
@@ -218,7 +219,9 @@
     let historyLinks = $('#patient-history').val().split(',');
     let patientHistory = [];
     historyLinks.forEach((item, i) => {
-      patientHistory.push({link: item});
+      if (item) {
+        patientHistory.push({link: item});
+      }
     });
     let studyID = $('#studyID').val();
     let mdl = $('#mdl').val();

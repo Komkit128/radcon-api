@@ -271,7 +271,7 @@ const RadTemplateDef = {
 
 const RadCaseDef = {
       Case_OrthancStudyID : {
-				type: Sequelize.UUID,
+				type: Sequelize.STRING(50),
 				allowNull: false
 			},
 			Case_BodyPart : {

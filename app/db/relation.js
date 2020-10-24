@@ -13,6 +13,8 @@ const sequelize = new Sequelize(dburl, {
   logging: true
 });
 
+const Op = Sequelize.Op;
+
 sequelize.authenticate().then(() => {
 	log.info('Connection has been established successfully.');
 }).catch(err => {
@@ -113,6 +115,7 @@ casereports.belongsTo(cases);
 
 module.exports =  {
   sequelize,
+  Op,
   Def,
   hospitals,
   usertypes,

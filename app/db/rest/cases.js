@@ -91,6 +91,34 @@ app.post('/list', (req, res) => {
   }
 });
 
+//Filter API
+app.post('/filter', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const hospitalId = req.body.hospitalId;
+          const userId = req.body.userId;
+          const statusId = req.body.statusId;
+          const caseInclude = [{model: db.patients, attributes: excludeColumn}];
+          const cases = await Case.findAll({include: caseInclude, where: {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }}});
+          res.json({status: {code: 200}, Records: cases});
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
 //insert, update, delete API
 app.post('/(:subAction)', (req, res) => {
   let token = req.headers.authorization;
@@ -106,18 +134,19 @@ app.post('/(:subAction)', (req, res) => {
         try {
           switch (subAction) {
             case 'add':
-              doCallCaseStatusByName('New').then(async (newcase) => {
+              doCallCaseStatusByName('New').then(async (newcaseStatus) => {
                 let newCase = req.body.data;
                 let adCase = await Case.create(newCase);
                 let setupCaseTo = { hospitalId: req.body.hospitalId, patientId: req.body.patientId, userId: req.body.userId, cliamerightId: req.body.cliamerightId, urgenttypeId: req.body.urgenttypeId};
                 await Case.update(setupCaseTo, { where: { id: adCase.id } });
-                await user[0].setUserstatus(status[0]);
-                res.json({Result: "OK", Record: adCase});
+                await adCase.setCasestatus(newcaseStatus[0]);
+                res.json({Result: "OK", status: {code: 200}, Record: adCase});
               });
             break;
             case 'update':
-              let updateCase = req.body;
+              let updateCase = req.body.data;
               await Case.update(updateCase, { where: { id: id } });
+              const cases = await Case.findAll({ attributes: excludeColumn, where: { id: id }});
               res.json({Result: "OK"});
             break;
             case 'delete':

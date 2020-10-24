@@ -97,13 +97,13 @@ const setSaltAndPassword = user => {
   }
 }
 
-const resetAdmin = async () => {
+const resetAdmin = async (username, newPassword) => {
   let yourNewPassword = 'Limparty';
-  let anyuser = await User.findAll({ where: {	username: 'limparty'}});
+  let anyuser = await User.findAll({ where: {	username: username}});
   let yourSalt = anyuser[0].salt();
-  let yourEncryptPassword = User.encryptPassword(yourNewPassword, yourSalt);
-  log.info('syourEncryptPassword => ' + yourEncryptPassword);
-  await User.update({password: yourEncryptPassword}, { where: { username: 'limparty' } });
+  let yourEncryptPassword = User.encryptPassword(newPassword, yourSalt);
+  log.info('yourEncryptPassword => ' + yourEncryptPassword);
+  await User.update({password: yourEncryptPassword}, { where: { username: username } });
 }
 
 module.exports = ( dbconn, monitor ) => {
