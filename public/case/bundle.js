@@ -669,18 +669,17 @@ module.exports = function ( jq ) {
 
 		try {
 			let response = await doCallApi('/api/cases/filter', rqParams);
-			console.log(response);
 			if (response.status.code === 200) {
 				let rwTable;
 				switch(currentTab) {
 					case "ReadWaitDiv":
 	  				$("#ReadWaitDiv-Content").empty();
-						rwTable = await doShowRwCaseList(response.Recordes);
+						rwTable = await doShowRwCaseList(response.Records);
 	  				$("#ReadWaitDiv-Content").append($(rwTable));
 					break;
 					case "ReadSuccessDiv":
 	  				$("#ReadSuccessDiv-Content").empty();
-						rwTable = await doShowRsCaseList(response.Recordes);
+						rwTable = await doShowRsCaseList(response.Records);
 	  				$("#ReadSuccessDiv-Content").append($(rwTable));
 					break;
 					case "AllCasesDiv":
@@ -693,7 +692,7 @@ module.exports = function ( jq ) {
 						});
 						$("#AllCasesDiv-Control").append($(dateRangeSearchCmd));
 	  				$("#AllCasesDiv-Content").empty();
-						rwTable = await doShowAllCaseList(response.Recordes);
+						rwTable = await doShowAllCaseList(response.Records);
 	  				$("#AllCasesDiv-Content").append($(rwTable));
 					break;
 				}
@@ -743,15 +742,15 @@ module.exports = function ( jq ) {
 	}
 
 	function doShowRwCaseList(incidents) {
-  	console.log(incidents);
+  	//console.log(incidents);
 		return new Promise(async function(resolve, reject) {
 			if ((incidents) && (incidents.length > 0)) {
 				let filterIncidents = incidents.filter((item, ind) => {
-					if (caseReadWaitStatus.indexOf(item.status) >= 0) {
+					//if (caseReadWaitStatus.indexOf(item.status) >= 0) {
 						return item;
-					}
+					//}
 				});
-				console.log(filterIncidents);
+				//console.log(filterIncidents);
 				if (filterIncidents.length > 0) {
 					let showTable = await doShowCaseList(filterIncidents);
 					resolve(showTable);
@@ -803,7 +802,7 @@ module.exports = function ( jq ) {
 	}
 
   function doShowCaseList(incidents) {
-		//console.log(incidents);
+		console.log(incidents);
 		return new Promise(function(resolve, reject) {
 			let rwTable = $('<table width="100%" cellpadding="5" cellspacing="0"></table>');
 			let headRow = $('<tr style="background-color: green;"></tr>');
@@ -812,32 +811,35 @@ module.exports = function ( jq ) {
 			$(headRow).append($(headColumns));
 			for (let i=0; i < incidents.length; i++) {
 				let dataRow = $('<tr class="case-row"></tr>');
-				let casedatetime = incidents[i].create_date.split(' ');
+				let casedatetime = incidents[i].createdAt.split(' ');
 				let casedateSegment = casedatetime[0].split('-');
 				casedateSegment = casedateSegment.join('');
 				let casedate = util.formatStudyDate(casedateSegment);
 				$(dataRow).append($('<td align="center"><div class="tooltip">'+ casedate + '<span class="tooltiptext">' + casedatetime[1] + '</span></div></td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].patient + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].age + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].gender + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].hn + '</td>'));
-				$(dataRow).append($('<td align="center">' + incidents[i].dicom_folder2 + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].scan_type + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].urgent + '</td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].primary_dr + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_NameEN + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_Age + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_Sex + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].patient.Patient_HN + '</td>'));
+				$(dataRow).append($('<td align="center">' + incidents[i].Case_Modality + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].Case_ProtocolName + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].urgenttype.UGType_Name + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].Refferal.User_NameTH + ' ' + incidents[i].Refferal.User_LastNameTH + '</td>'));
+				/*
 				if (incidents[i].response_dr.indexOf('/') >= 0) {
 					let response_dr = incidents[i].response_dr.split('/');
 					$(dataRow).append($('<td align="center">'+ response_dr[1] + '</td>'));
 				} else {
 					$(dataRow).append($('<td align="center">'+ incidents[i].response_dr + '</td>'));
 				}
-				$(dataRow).append($('<td align="center">'+ incidents[i].status_name + '</td>'));
+				*/
+				$(dataRow).append($('<td align="center">'+ incidents[i].Radiologist.User_NameTH + ' ' + incidents[i].Radiologist.User_LastNameTH + '</td>'));
+				$(dataRow).append($('<td align="center">'+ incidents[i].casestatus.CS_Name_EN + '</td>'));
 				let commandCol = $('<td align="center"></td>');
 				$(commandCol).appendTo($(dataRow));
 				$(commandCol).appendTo($(dataRow));
 				$(rwTable).append($(dataRow));
 
-				let operationCmdButton = $('<img class="pacs-command" data-toggle="tooltip" src="images/operation-icon.png" title="Your command case processing."/>');
+				let operationCmdButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/operation-icon.png" title="Your command case processing."/>');
 				$(operationCmdButton).click(function() {
 					$('.operation-row').each((index, child) => {
 						if ($(child).css('display') !== 'none') {
@@ -867,7 +869,7 @@ module.exports = function ( jq ) {
 				});
 				$(historyButton).appendTo($(operationCmdBox));
 				*/
-				let downlodDicomButton = $('<img class="pacs-command" data-toggle="tooltip" src="images/zip-icon.png" title="Download Dicom in zip file."/>');
+				let downlodDicomButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/zip-icon.png" title="Download Dicom in zip file."/>');
 				$(downlodDicomButton).click(function() {
 					let patientNameEN = incidents[i].patient.split(' ');
 					patientNameEN = patientNameEN.join('_');
@@ -876,13 +878,13 @@ module.exports = function ( jq ) {
 				});
 				$(downlodDicomButton).appendTo($(operationCmdBox));
 
-				let editCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="images/edit-icon.png" title="Edit Case Detail."/>');
+				let editCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/edit-icon.png" title="Edit Case Detail."/>');
 				$(editCaseButton).click(function() {
 					doCallEditCase(incidents[i].id);
 				});
 				$(editCaseButton).appendTo($(operationCmdBox));
 
-				let changeCaseStatusButton = $('<img class="pacs-command" data-toggle="tooltip" src="images/status-icon.png" title="Change Case\'s Status."/>');
+				let changeCaseStatusButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/status-icon.png" title="Change Case\'s Status."/>');
 				$(changeCaseStatusButton).click(function() {
 					doShowPopupChangeCaseStatus(incidents[i].id, incidents[i].status);
 				});
@@ -890,7 +892,7 @@ module.exports = function ( jq ) {
 
 
 				if (caseReadSuccessStatus.indexOf(incidents[i].status) >= 0) {
-					let printResultButton = $('<img class="pacs-command" data-toggle="tooltip" src="images/print-icon.png" title="Print Read Result."/>');
+					let printResultButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/print-icon.png" title="Print Read Result."/>');
 					$(printResultButton).click(function() {
 						let patientNameEN = incidents[i].dicom_zip2.split(' ');
 						patientNameEN = patientNameEN.join('_');
@@ -898,7 +900,7 @@ module.exports = function ( jq ) {
 					});
 					$(printResultButton).appendTo($(operationCmdBox));
 
-					let convertResultButton = $('<img class="pacs-command-dd" data-toggle="tooltip" src="images/convert-icon.png" title="Convert Result to Dicom."/>');
+					let convertResultButton = $('<img class="pacs-command-dd" data-toggle="tooltip" src="/images/convert-icon.png" title="Convert Result to Dicom."/>');
 					$(convertResultButton).click(function() {
 						const main = require('../main.js');
 						doConvertResultToDicom(incidents[i].re_url, incidents[i].dicom_folder1, incidents[i].dicom_folder2, main.doGetUserData().username);
@@ -906,7 +908,7 @@ module.exports = function ( jq ) {
 					$(convertResultButton).appendTo($(operationCmdBox));
 				}
 
-				let deleteCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="images/delete-icon.png" title="Delete Case."/>');
+				let deleteCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/delete-icon.png" title="Delete Case."/>');
 				$(deleteCaseButton).click(function() {
 					doCallDeleteCase(incidents[i].id);
 				});

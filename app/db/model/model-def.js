@@ -195,7 +195,7 @@ const RadPatientDef = {
 				type: Sequelize.STRING(30),
 			},
 			Patient_Age : {
-				type: Sequelize.INTEGER,
+				type: Sequelize.STRING(5),
 			},
 			Patient_Sex : {
 				type: Sequelize.STRING(1),

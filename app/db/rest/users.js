@@ -84,7 +84,7 @@ app.put('/changepassword', async (req, res) => {
         try {
           let yourNewPassword = req.body.password;
           let yourUser = await User.findAll({ where: {	username: ur[0].username}});
-          let yourSalt = yourUser.salt();
+          let yourSalt = yourUser[0].salt();
           let yourEncryptPassword = User.encryptPassword(yourNewPassword, yourSalt);
           log.info('yourEncryptPassword => ' + yourEncryptPassword);
           await User.update({password: yourEncryptPassword}, { where: { username: ur[0].username } });

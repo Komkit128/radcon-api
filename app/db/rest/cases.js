@@ -101,9 +101,27 @@ app.post('/filter', (req, res) => {
           const hospitalId = req.body.hospitalId;
           const userId = req.body.userId;
           const statusId = req.body.statusId;
-          const caseInclude = [{model: db.patients, attributes: excludeColumn}];
+          const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType_Name']}];
           const cases = await Case.findAll({include: caseInclude, where: {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }}});
-          res.json({status: {code: 200}, Records: cases});
+          const promiseList = new Promise(async function(resolve, reject) {
+            cases.forEach(async (item, i) => {
+              const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {userlId: item.Case_RadiologistId}});
+              item.Radiologist = rades[0];
+              const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {userlId: item.Case_RefferalId}});
+              item.Refferal = refes[0];
+            });
+            setTimeout(()=> {
+              resolve(cases);
+            },500);
+          });
+          Promise.all([promiseList]).then((ob)=> {
+            log.info('ob=>'+ JSON.stringify(ob[0]));
+            res.json({status: {code: 200}, Records: ob[0]});
+          }).catch((err)=>{
+            reject(err);
+          });
+
+
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});

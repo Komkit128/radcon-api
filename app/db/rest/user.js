@@ -80,8 +80,9 @@ app.post('/(:subAction)', (req, res) => {
               res.json({Result: "OK", Record: adUser});
             break;
             case 'update':
+              const anyUser = await User.findAll({ attributes: ['userinfoId'], where: {id: id}});
               let updateUser = req.body;
-              await User.update(updateUser, { where: { id: id } });
+              await User.update(updateUser, { where: { id: anyUser[0].userinfoId } });
               res.json({Result: "OK"});
             break;
             case 'delete':
