@@ -16,10 +16,10 @@ const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
 const doGenOptions = function() {
   return new Promise(function(resolve, reject) {
     const promiseList = new Promise(async function(resolve, reject) {
-      const statuses = await CaseStatus.findAll({ attributes: ['id', 'CS_Name_EN'] });
+      const statuses = await CaseStatus.findAll({ attributes: ['id', 'CS_Name_EN', 'CS_Name_TH'] });
       const result = [];
       statuses.forEach((status, i) => {
-        result.push({Value: status.id, DisplayText: status.CS_Name_EN});
+        result.push({Value: status.id, DisplayText: status.CS_Name_EN + ' - ' + status.CS_Name_TH});
       });
       setTimeout(()=> {
         resolve({Result: "OK", Options: result});
@@ -107,12 +107,6 @@ app.post('/(:subAction)', (req, res) => {
 });
 
 app.get('/options', (req, res) => {
-  doGenOptions().then((result) => {
-    res.json(result);
-  })
-});
-
-app.post('/options', async (req, res) => {
   doGenOptions().then((result) => {
     res.json(result);
   })

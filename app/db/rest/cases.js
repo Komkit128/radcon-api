@@ -61,6 +61,13 @@ const doCallCaseStatusByName = function(Name) {
   });
 }
 
+const doGetCaseDescription = function(caseId) {
+  return new Promise(async (resolve, reject) => {
+    const caseDesc = await db.cases.findAll({ attributes: ['id', 'Case_DESC'], where: {id: caseId} });
+    resolve(caseDesc);
+  });
+}
+
 //List API
 app.post('/list', (req, res) => {
   let token = req.headers.authorization;
@@ -121,8 +128,6 @@ app.post('/filter', (req, res) => {
           }).catch((err)=>{
             reject(err);
           });
-
-
         } catch(error) {
           log.error(error);
           res.json({status: {code: 500}, error: error});
@@ -136,6 +141,57 @@ app.post('/filter', (req, res) => {
     log.info('Authorization Wrong.');
     res.json({status: {code: 400}, error: 'Your authorization wrong'});
   }
+});
+
+//Select API
+app.post('/select/(:caseId)', (req, res) => {
+  let token = req.headers.authorization;
+  if (token) {
+    auth.doDecodeToken(token).then(async (ur) => {
+      if (ur.length > 0){
+        try {
+          const caseId = req.params.caseId;
+          const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType_Name']}];
+          const cases = await Case.findAll({include: caseInclude, where: {id: caseId}});
+          const casesFormat = [];
+          const promiseList = new Promise(async function(resolve, reject) {
+            cases.forEach(async (item, i) => {
+              const radUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RadiologistId}});
+              const rades = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: radUser[0].userinfoId}});
+              const refUser = await db.users.findAll({ attributes: ['userinfoId'], where: {id: item.Case_RefferalId}});
+              const refes = await db.userinfoes.findAll({ attributes: ['id', 'User_NameTH', 'User_LastNameTH'], where: {id: refUser[0].userinfoId}});
+              casesFormat.push({case: item, Radiologist: rades[0], Refferal: refes[0]});
+            });
+            setTimeout(()=> {
+              resolve(casesFormat);
+            },500);
+          });
+          Promise.all([promiseList]).then((ob)=> {
+            res.json({status: {code: 200}, Records: ob[0]});
+          }).catch((err)=>{
+            reject(err);
+          });
+        } catch(error) {
+          log.error(error);
+          res.json({status: {code: 500}, error: error});
+        }
+      } else {
+        log.info('Can not found user from token.');
+        res.json({status: {code: 203}, error: 'Your token lost.'});
+      }
+    });
+  } else {
+    log.info('Authorization Wrong.');
+    res.json({status: {code: 400}, error: 'Your authorization wrong'});
+  }
+});
+
+//update status
+app.post('/status/(:caseId)', async (req, res) => {
+  const caseId = req.params.caseId;
+  let caseStatusChange = { casestatustId: req.body.casestatustId, Case_DESC: req.body.caseDescription};
+  await Case.update(caseStatusChange, { where: { id: caseId } });
+  res.json({Result: "OK", status: {code: 200}});
 });
 
 //insert, update, delete API
@@ -165,8 +221,9 @@ app.post('/(:subAction)', (req, res) => {
             case 'update':
               let updateCase = req.body.data;
               await Case.update(updateCase, { where: { id: id } });
-              const cases = await Case.findAll({ attributes: excludeColumn, where: { id: id }});
-              res.json({Result: "OK"});
+              let setupCaseTo = { cliamerightId: req.body.cliamerightId, urgenttypeId: req.body.urgenttypeId};
+              await Case.update(setupCaseTo, { where: { id: id } });
+              res.json({Result: "OK", status: {code: 200}});
             break;
             case 'delete':
               await Case.destroy({ where: { id: id } });
@@ -195,11 +252,11 @@ app.get('/options/(:hospitalId)', (req, res) => {
   })
 });
 
-app.post('/options/(:hospitalId)', async (req, res) => {
-  const hospitalId = req.params.hospitalId;
-  doGenNewCaseOptions(hospitalId).then((result) => {
+app.get('/description/(:caseId)', (req, res) => {
+  const caseId = req.params.caseId;
+  doGetCaseDescription(caseId).then((result) => {
     res.json(result);
-  })
+  });
 });
 
 module.exports = ( dbconn, monitor ) => {

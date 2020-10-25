@@ -12,10 +12,10 @@ const app = express();
 const ORTHANC_URL = 'http://' + process.env.ORTHANC_DOMAIN + ':' + process.env.ORTHANC_REST_PORT;
 const userpass = process.env.ORTHANC_USER + ':' + process.env.ORTHANC_PASSWORD;
 const currentDir = __dirname;
-const parentDir = path.normalize(currentDir + '/..');
-const usrPreviewDir = parentDir + process.env.USRPREVIEW_DIR;
-const usrArchiveDir = parentDir + process.env.USRARCHIVE_DIR;
-const usrUploadDir = parentDir + process.env.USRUPLOAD_DIR;
+const publicDir = path.normalize(currentDir + '/../..');
+const usrPreviewDir = publicDir + process.env.USRPREVIEW_DIR;
+const usrArchiveDir = publicDir + process.env.USRARCHIVE_DIR;
+const usrUploadDir = publicDir + process.env.USRUPLOAD_DIR;
 
 const proxyRequest = function(rqParam) {
 	return new Promise(function(resolve, reject) {
@@ -67,13 +67,13 @@ const parseStr = function (str) {
   return str.replace(/%s/g, () => args[i++]);
 }
 
-const doLoadArchive = function(studyID, rootname, username){
+const doLoadArchive = function(studyID, username){
 	return new Promise(function(resolve, reject) {
 		var archiveFileName = studyID + '.zip';
 		var command = 'curl --user ' + userpass + ' -H "user: ' + username + '" ' + ORTHANC_URL + '/studies/' + studyID + '/archive > ' + usrArchiveDir + '/' + archiveFileName;
 		console.log('curl command >>', command);
 		runcommand(command).then((stdout) => {
-			let link = '/' + rootname + process.env.USRARCHIVE_PATH + '/' + archiveFileName;
+			let link = process.env.USRARCHIVE_PATH + '/' + archiveFileName;
 			resolve({link: link});
 		});
 	});
@@ -194,7 +194,7 @@ app.post('/loadarchive/(:studyID)', function(req, res) {
 	const rootname = req.originalUrl.split('/')[1];
 	var studyID = req.params.studyID;
 	var username = req.body.username;
-	doLoadArchive(studyID, rootname, username).then((archive) => {
+	doLoadArchive(studyID, username).then((archive) => {
 		res.status(200).send({archive: {link: archive.link}});
 	});
 });
@@ -203,7 +203,8 @@ app.post('/transferdicom/(:studyID)', function(req, res) {
 	const rootname = req.originalUrl.split('/')[1];
 	var studyID = req.params.studyID;
 	var username = req.body.username;
-	doLoadArchive(studyID, rootname, username).then((archive) => {
+	var achiveFilename = req.body.achiveFilename;
+	doLoadArchive(studyID, username, achiveFilename).then((archive) => {
 		if (archive.link) {
 			doTransferArchive(studyID).then((response) => {
 				res.status(200).send({local: {link: archive.link}, cloud: {link: response.link}});

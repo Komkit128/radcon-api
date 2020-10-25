@@ -384,6 +384,16 @@ module.exports = function ( jq ) {
 		});
 	}
 
+  const doGetApi = function (apiurl, params) {
+		return new Promise(function(resolve, reject) {
+			$.get(apiurl, params, function(data){
+				resolve(data);
+			}).fail(function(error) {
+				reject(error);
+			});
+		});
+	}
+
 	const doGetResourceByProxy = function(params) {
 		return new Promise(function(resolve, reject) {
 			let proxyEndPoint = proxyRootUri + proxyApi + '/getresource';
@@ -524,6 +534,7 @@ module.exports = function ( jq ) {
 		doCallApiDirect,
 		doCallApiByProxy,
     doCallApi,
+    doGetApi,
 		doGetResourceByProxy,
 		doCallOrthancApiByProxy,
 		doCallDicomPreview,
@@ -582,6 +593,15 @@ module.exports = function ( jq ) {
 		});
 	}
 
+	function doGetApi(url, rqParams) {
+		return new Promise(function(resolve, reject) {
+			apiconnector.doGetApi(url, rqParams).then((response) => {
+				resolve(response);
+			}).catch((err) => {
+				console.log(JSON.stringify(err));
+			})
+		});
+	}
 
 	/*******************************************************/
 
@@ -653,7 +673,6 @@ module.exports = function ( jq ) {
 		currentTab = e.detail.eventname;
 		const main = require('../main.js');
 		let userdata = JSON.parse(main.doGetUserData());
-		console.log(userdata);
 		let hospitalId = userdata.hospitalId;
 		let userId = userdata.id;
 		let rqParams, today;
@@ -824,18 +843,9 @@ module.exports = function ( jq ) {
 				$(dataRow).append($('<td align="center">'+ incidents[i].case.Case_ProtocolName + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].case.urgenttype.UGType_Name + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].Refferal.User_NameTH + ' ' + incidents[i].Refferal.User_LastNameTH + '</td>'));
-				/*
-				if (incidents[i].response_dr.indexOf('/') >= 0) {
-					let response_dr = incidents[i].response_dr.split('/');
-					$(dataRow).append($('<td align="center">'+ response_dr[1] + '</td>'));
-				} else {
-					$(dataRow).append($('<td align="center">'+ incidents[i].response_dr + '</td>'));
-				}
-				*/
 				$(dataRow).append($('<td align="center">'+ incidents[i].Radiologist.User_NameTH + ' ' + incidents[i].Radiologist.User_LastNameTH + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].case.casestatus.CS_Name_EN + '</td>'));
 				let commandCol = $('<td align="center"></td>');
-				$(commandCol).appendTo($(dataRow));
 				$(commandCol).appendTo($(dataRow));
 				$(rwTable).append($(dataRow));
 
@@ -846,18 +856,18 @@ module.exports = function ( jq ) {
 							$(child).slideUp();
 						}
 					});
-					let operationVisible = $('#' + incidents[i].id).css('display');
+					let operationVisible = $('#' + incidents[i].case.id).css('display');
 					if (operationVisible === 'none') {
-						$('#' + incidents[i].id).slideDown();
+						$('#' + incidents[i].case.id).slideDown();
 					} else {
-						$('#' + incidents[i].id).slideUp();
+						$('#' + incidents[i].case.id).slideUp();
 					}
 				});
 				$(operationCmdButton).appendTo($(commandCol));
 
 				let commnandRow = $('<tr></tr>');
 				$(commnandRow).appendTo($(rwTable));
-				let operationCol = $('<td id="' + incidents[i].id + '"colspan="12" align="right" style="background-color: #828080; display: none;" class="operation-row"></td>');
+				let operationCol = $('<td id="' + incidents[i].case.id + '"colspan="12" align="right" style="background-color: #828080; display: none;" class="operation-row"></td>');
 				$(operationCol).appendTo($(commnandRow));
 
 				let operationCmdBox = $('<div></div>');
@@ -871,22 +881,22 @@ module.exports = function ( jq ) {
 				*/
 				let downlodDicomButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/zip-icon.png" title="Download Dicom in zip file."/>');
 				$(downlodDicomButton).click(function() {
-					let patientNameEN = incidents[i].patient.split(' ');
+					let patientNameEN = incidents[i].case.patient.Patient_NameEN.split(' ');
 					patientNameEN = patientNameEN.join('_');
 					let savefile = patientNameEN + '-' + casedateSegment + '.zip';
-					doDownloadDicom(incidents[i].dicom_folder1, savefile);
+					doDownloadDicom(incidents[i].case.Case_OrthancStudyID, savefile);
 				});
 				$(downlodDicomButton).appendTo($(operationCmdBox));
 
 				let editCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/edit-icon.png" title="Edit Case Detail."/>');
 				$(editCaseButton).click(function() {
-					doCallEditCase(incidents[i].id);
+					doCallEditCase(incidents[i].case.id);
 				});
 				$(editCaseButton).appendTo($(operationCmdBox));
 
 				let changeCaseStatusButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/status-icon.png" title="Change Case\'s Status."/>');
 				$(changeCaseStatusButton).click(function() {
-					doShowPopupChangeCaseStatus(incidents[i].id, incidents[i].status);
+					doShowPopupChangeCaseStatus(incidents[i].case.id, incidents[i].case.casestatusId);
 				});
 				$(changeCaseStatusButton).appendTo($(operationCmdBox));
 
@@ -910,7 +920,7 @@ module.exports = function ( jq ) {
 
 				let deleteCaseButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/delete-icon.png" title="Delete Case."/>');
 				$(deleteCaseButton).click(function() {
-					doCallDeleteCase(incidents[i].id);
+					doCallDeleteCase(incidents[i].case.id);
 				});
 				$(deleteCaseButton).appendTo($(operationCmdBox));
 
@@ -961,23 +971,28 @@ module.exports = function ( jq ) {
   async function doCallEditCase(caseid) {
   	$('body').loading('start');
   	const main = require('../main.js');
-		let rqParams = { username: main.doGetUserData().username, id: caseid }
-		let apiName = 'get_case_info';
+		let userdata = JSON.parse(main.doGetUserData());
+		const username = userdata.username;
+
+		let rqParams = { username: username, id: caseid }
+		let apiUrl = '/api/cases/select/' + caseid;
 		try {
-			let response = await doCallApi(apiName, rqParams);
-  		let resBody = JSON.parse(response.res.body);
-  		let patient = {id: resBody.inc_data.hn, name: resBody.inc_data.dicom_zip2, name_th: resBody.inc_data.patient, age: resBody.inc_data.age, sex: resBody.inc_data.gender};
-			let defualtValue = {id: resBody.inc_data.id, patient: patient, bodypart: resBody.inc_data.inc_scan_type, studyID: resBody.inc_data.dicom_folder1, acc: resBody.inc_data.accession, mdl: resBody.inc_data.dicom_folder2};
-			defualtValue.pn_history = resBody.inc_data.pn_history;
-			defualtValue.status = resBody.inc_data.status;
-			defualtValue.urgent = resBody.inc_data.urgent_id;
-			defualtValue.rights = resBody.inc_data.rights_id;
-			defualtValue.primary_dr = resBody.inc_data.primary_dr;
-			defualtValue.dr_id = resBody.inc_data.dr_id;
-			defualtValue.detail = resBody.inc_data.detail;
-			defualtValue.dept = resBody.inc_data.dept;
-			defualtValue.inc_price = resBody.inc_data.inc_price;
-			defualtValue.dicom_zip1 = resBody.inc_data.dicom_zip1;
+			let apiRes = await doCallApi(apiUrl, rqParams);
+			let response = apiRes.Records[0];
+			let resPatient = response.case.patient;
+  		let patient = {id: resPatient.Patient_HN, name: resPatient.Patient_NameEN, name_th: resPatient.Patient_NameTH, age: resPatient.Patient_Age, sex: resPatient.Patient_Sex};
+			let defualtValue = {id: response.case.id, patient: patient, bodypart: response.case.Case_BodyPart, studyID: response.case.Case_OrthancStudyID, acc: resPatient.Patient_ACC, mdl: response.case.Case_Modality};
+			defualtValue.pn_history = response.case.Case_PatientHRLink;
+			defualtValue.status = response.case.casestatusId;
+			defualtValue.urgent = response.case.urgenttypeId;
+			defualtValue.rights = response.case.cliamerightId;
+			defualtValue.primary_dr = response.case.Case_RefferalId;
+			defualtValue.dr_id = response.case.Case_RadiologistId;
+			defualtValue.detail = response.case.Case_DESC;
+			defualtValue.dept = response.case.Case_Department;
+			defualtValue.inc_price = response.case.Case_Price;
+			defualtValue.dicom_zip1 = '';
+			defualtValue.patientId = resPatient.id;
   		doOpenEditCase(defualtValue);
   		$('body').loading('stop');
 		} catch(e) {
@@ -1283,7 +1298,8 @@ module.exports = function ( jq ) {
   function doDownloadDicom(studyID, dicomFilename){
 		$('body').loading('start');
 		const main = require('../main.js');
-		const username = main.doGetUserData().username;
+		let userdata = JSON.parse(main.doGetUserData());
+		const username = userdata.username;
   	apiconnector.doCallDownloadDicom(studyID, username).then((response) => {
   		console.log(response);
   		//let openLink = response.archive.link;
@@ -1377,7 +1393,8 @@ module.exports = function ( jq ) {
   	if (userConfirm == true){
   		$('body').loading('start');
 			const main = require('../main.js');
-			const username = main.doGetUserData().username;
+			let userdata = JSON.parse(main.doGetUserData());
+			const username = userdata.username;
 			apiconnector.doCallDeleteDicom(studyID, username).then((response) => {
 				console.log(response);
 				if (response.status.code == 200) {
@@ -1400,14 +1417,15 @@ module.exports = function ( jq ) {
   function doOpenEditCase(defualtValue) {
 		$("#dialog").load('form/newcase-dialog.html', async function(){
 			$('#dialog-title').text('แก้ไขเคส');
-			const main = require('../main.js');
 
 			await doPrepareOptionForm(defualtValue);
 
   		//console.log(defualtValue);
 
 			if (defualtValue.pn_history) {
-				doAddHistory(defualtValue.pn_history);
+				defualtValue.pn_history.forEach((item, i) => {
+					doAddHistory(item.link);
+				});
 				doRenderHistoryPreview();
 			}
 
@@ -1419,7 +1437,7 @@ module.exports = function ( jq ) {
 			$("#acc").val(defualtValue.acc);
 
 			$("#department").val(defualtValue.dept);
-			$("#dr-owner").val(defualtValue.primary_dr);
+			$("#dr-owner-select").val(defualtValue.primary_dr);
 			$("#bodypart").val(defualtValue.bodypart);
 			$("#urgent-type").val(defualtValue.urgent);
 
@@ -1427,8 +1445,10 @@ module.exports = function ( jq ) {
 
 			$("#detail").val(defualtValue.detail);
 			$("#caseID").val(defualtValue.id);
+			/*
 			let ziplink = 'https://radconnext.com/radconnext/inc_files/' + defualtValue.dicom_zip1;
 			$('#MainTableForm').append($('<tr><td class="input-label">Dicom Zip File</td><td colspan="3"><a href="' + ziplink + '" target="_blank"><img class="pacs-command" data-toggle="tooltip" src="images/zip-icon.png" title="Download Dicom in zip file."/></a></td></tr>'));
+			*/
 			$("#SaveNewCase-Cmd").val("บันทึก");
 
 			$("#upload-scan-cmd").click(function(){
@@ -1436,7 +1456,7 @@ module.exports = function ( jq ) {
 			});
 
 			$("#SaveNewCase-Cmd").click(function(){
-				doSaveEditCase(defualtValue.id);
+				doSaveEditCase(defualtValue.id, defualtValue.patientId);
 			});
 		});
   }
@@ -1899,43 +1919,32 @@ module.exports = function ( jq ) {
 		}
 	}
 
-	async function doSaveEditCase(caseid){
+	async function doSaveEditCase(caseId, patientId){
 		let newCaseData = doVerifyInputForm();
 		if (newCaseData) {
 			$('body').loading('start');
 			const main = require('../main.js');
-			newCaseData.username = main.doGetUserData().username;
-			newCaseData.status = 'finish_upload';
-			let rqParams = doPrepareCaseParams(newCaseData, '');
-			rqParams.id = caseid;
-			rqParams.patient = rqParams.inc_patient;
-			delete rqParams.inc_patient;
-			delete rqParams.curr_host_id;
-			rqParams.new_dicom = 'n';
-			console.log(rqParams);
-			let apiName = 'save_update_inc';
-			try {
-				let response = await doCallApi(apiName, rqParams);
-				console.log(response);
-				if (response.res.statusCode == 200) {
-					alert('บันทึกการแก้ไขเคสเข้าสู่ระบบเรียบร้อยแล้ว');
-					doCloseNewCaseBox();
-					if (currentTab === 'ReadWaitDiv') {
-						//openRwCaseList();
-						$("#ReadWaitTab").trigger("click");
-					} else if (currentTab === 'ReadSuccessDiv') {
-						//openRsCaseList();
-						$("#ReadSuccessTab").trigger("click");
-					}
-					$('body').loading('stop');
-				} else if (response.res.statusCode == 500) {
-					alert('API Server ขัดข้อง');
-					$('body').loading('stop');
-				}
- 			} catch(e) {
-        console.log('Unexpected error occurred =>', e);
-        $('body').loading('stop');
-    	}
+			const userdata = JSON.parse(main.doGetUserData());
+			const hospitalId = userdata.hospitalId;
+			const userId = userdata.id
+
+			let patientData = doPreparePatientParams(newCaseData);
+			let rqParams = {data: patientData, patientId: patientId};
+			let patientRes = await doCallApi('/api/patient/update', rqParams);
+
+			const urgenttypeId = newCaseData.urgentType;
+			const cliamerightId = newCaseData.patientRights
+			let casedata = doPrepareCaseParams(newCaseData);
+			//rqParams = {data: casedata, hospitalId: hospitalId, userId: userId, patientId: patientId, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId};
+			rqParams = {id: caseId, data: casedata, urgenttypeId: urgenttypeId, cliamerightId: cliamerightId};
+			let caseRes = await doCallApi('/api/cases/update', rqParams);
+			if (caseRes.status.code === 200) {
+				$.notify("บันทึกการแก้ไขเคสเรียบร้อยแล้ว", "info");
+				doCloseNewCaseBox();
+			} else {
+				$.notify("เกิดความผิดพลาด ไม่สามารถบันทึกการแก้ไขเคสได้ในขณะนี้", "error");
+			}
+			$('body').loading('stop');
 		}
 	}
 
@@ -2004,7 +2013,20 @@ module.exports = function ( jq ) {
   	$('#HistoryDialogBox').dialog('open');
 	}
 
-  function doShowPopupChangeCaseStatus(id, currentStatus){
+  async function doShowPopupChangeCaseStatus(id, currentStatus){
+		$('body').loading('start');
+		const main = require('../main.js');
+		const userdata = JSON.parse(main.doGetUserData());
+		const hospitalId = userdata.hospitalId;
+		const userId = userdata.id
+
+		let rqParams = { hospitalId: hospitalId, userId: userId};
+		let casestatusRes = await doGetApi('/api/casestatus/options', rqParams);
+		console.log(casestatusRes);
+
+		let caseDescRes = await doGetApi('/api/cases/description/' + id, rqParams);
+		console.log(caseDescRes);
+
   	const spacingBox = $('<span>&nbsp;</span>');
   	const inputStyleClass = {"font-family": "THSarabunNew", "font-size": "24px"};
 
@@ -2014,19 +2036,25 @@ module.exports = function ( jq ) {
   	let statusSelect = $('<select id="newStatus"></select>');
   	$(statusSelect).css(inputStyleClass);
 
-  	apiconnector.RadConStatus.forEach((item) => {
-			if (item.use == true) {
-	  		let option = $('<option></option>');
-	  		$(option).val(item.status_en);
-	  		$(option).text(item.status_th);
-	  		if (item.status_en === currentStatus) {
-	  			$(option).attr('selected', true);
-	  		}
-	  		$(option).appendTo($(statusSelect));
-			}
+  	await casestatusRes.Options.forEach((item) => {
+  		let option = $('<option></option>');
+  		$(option).val(item.Value);
+  		$(option).text(item.DisplayText);
+  		if (item.Value === currentStatus) {
+  			$(option).attr('selected', true);
+  		}
+  		$(option).appendTo($(statusSelect));
   	});
+
   	$(selectBox).append($('<label>สถานะใหม่ที่ต้องการเปลี่ยน :</label>'));
   	$(selectBox).append($(statusSelect));
+
+		let descBox = $('<div></div>');
+  	let descText = $('<textarea id="caseDescription" cols="30" rows="5"></textarea>');
+  	$(descText).css(inputStyleClass);
+		$(descText).val(caseDescRes[0].Case_DESC);
+		$(descBox).append($('<label>รายละเอียดเคส :</label>'));
+		$(descBox).append($(descText));
 
 		let cmdBox = $('<div></div>');
  		$(cmdBox).css('width','100%');
@@ -2051,10 +2079,13 @@ module.exports = function ( jq ) {
 		$(cancelCmdBtn).appendTo($(cmdBox));
 
   	$('#HistoryDialogBox').append($(selectBox));
+		$('#HistoryDialogBox').append($(descBox));
   	$('#HistoryDialogBox').append($(cmdBox));
 
   	let caseIDHidden = $('<input type="hidden" id="caseID" value="' + id + '"/>');
   	$(caseIDHidden).appendTo($('#HistoryDialogBox'));
+
+		$('body').loading('stop');
 
   	$('#HistoryDialogBox').dialog('option', 'title', 'เปลี่ยนสถานะเคส');
   	$('#HistoryDialogBox').dialog('open');
@@ -2064,7 +2095,8 @@ module.exports = function ( jq ) {
 		$('body').loading('start');
 		let caseID = $('#caseID').val();
 		let newStatus = $('#newStatus').val();
-		doUpdateCaseStatus(caseID, newStatus).then((response) => {
+		let newDescription = $('#caseDescription').val();
+		doUpdateCaseStatus(caseID, newStatus, newDescription).then((response) => {
 			if (currentTab === 'ReadWaitDiv') {
 				//openRwCaseList();
 				$("#ReadWaitTab").trigger("click");
@@ -2100,16 +2132,17 @@ module.exports = function ( jq ) {
   	}
 	}
 
-	function doUpdateCaseStatus(id, newStatus){
+	function doUpdateCaseStatus(id, newStatus, newDescription){
 		return new Promise(async function(resolve, reject) {
 			const main = require('../main.js');
-			let rqParams = { username: main.doGetUserData().username , inc_id: id, update_status: newStatus};
-			let apiName = 'update_incident';
+			let userdata = JSON.parse(main.doGetUserData());
+			let hospitalId = userdata.hospitalId;
+			let userId = userdata.userId;
+			let rqParams = { hospitalId: hospitalId, userId: userId, caseId: id, casestatusId: newStatus, caseDescription: newDescription};
+			let apiUrl = '/api/cases/status/' + id;
 			try {
-				let response = await doCallApi(apiName, rqParams);
-				console.log(response);
-				let resO = JSON.parse(response.res.body);
-				resolve(resO);
+				let response = await doCallApi(apiUrl, rqParams);
+				resolve(response);
 			} catch(e) {
 	      reject(e);
     	}
