@@ -108,8 +108,17 @@ app.post('/filter', (req, res) => {
           const hospitalId = req.body.hospitalId;
           const userId = req.body.userId;
           const statusId = req.body.statusId;
+          const filterDate = req.body.filterDate;
+          let whereClous;
+          if (filterDate) {
+            let startDate = new Date(filterDate.from);
+            log.info(startDate);
+            whereClous = {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }, createdAt: { [db.Op.gte]: startDate}};
+          } else {
+            whereClous = {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }}
+          }
           const caseInclude = [{model: db.patients, attributes: excludeColumn}, {model: db.casestatuses, attributes: ['id', 'CS_Name_EN']}, {model: db.urgenttypes, attributes: ['id', 'UGType_Name']}];
-          const cases = await Case.findAll({include: caseInclude, where: {hospitalId: hospitalId, userId: userId, casestatusId: { [db.Op.in]: statusId }}});
+          const cases = await Case.findAll({include: caseInclude, where: whereClous});
           const casesFormat = [];
           const promiseList = new Promise(async function(resolve, reject) {
             cases.forEach(async (item, i) => {
@@ -189,7 +198,8 @@ app.post('/select/(:caseId)', (req, res) => {
 //update status
 app.post('/status/(:caseId)', async (req, res) => {
   const caseId = req.params.caseId;
-  let caseStatusChange = { casestatustId: req.body.casestatustId, Case_DESC: req.body.caseDescription};
+  log.info('Body of Request=> ' + JSON.stringify(req.body));
+  let caseStatusChange = { casestatusId: req.body.casestatusId, Case_DESC: req.body.caseDescription};
   await Case.update(caseStatusChange, { where: { id: caseId } });
   res.json({Result: "OK", status: {code: 200}});
 });
@@ -227,7 +237,7 @@ app.post('/(:subAction)', (req, res) => {
             break;
             case 'delete':
               await Case.destroy({ where: { id: id } });
-              res.json({Result: "OK"});
+              res.json({Result: "OK", status: {code: 200}});
             break;
           }
         } catch(error) {

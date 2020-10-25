@@ -125,6 +125,11 @@ function doLoadMainPage(){
 		$("#Case-Cmd").click(function(){
 			doShowCase()
 		});
+		$("#Setting-Cmd").click(function(){
+			let url = '/';
+	    window.location.replace(url);
+		});
+
     /*
 		$("#Doctor-Cmd").click(function(){
 			doShowMainDoctor();
@@ -561,25 +566,9 @@ module.exports = function ( jq ) {
 	const defualtPacsLimit = '30';
 	const defualtPacsStudyDate = 'ALL';
 
-	const caseReadWaitStatus = ['draft',
-		'wait_zip',
-		'processing',
-		'wait_upload',
-		'uploading',
-		'finish_uploa',
-		'wait_consult',
-		'wait_dr_consult',
-		'consult_expire',
-		'wait_consult_ack',
-		'wait_response_1',
-		'wait_response_2',
-		'wait_response_3',
-		'wait_response_4',
-		'wait_response_5',
-		'wait_response_6',
-		'wait_dr_key'
-	];
-	const caseReadSuccessStatus = ['wait_close', 'wait_close2', 'close'];
+	const caseReadWaitStatus = [1,2,3,4,7];
+	const caseReadSuccessStatus = [5,6];
+	const caseAllStatus = [1,2,3,4,5,6,7];
 
 	/*******************************************************/
 
@@ -676,14 +665,16 @@ module.exports = function ( jq ) {
 		let hospitalId = userdata.hospitalId;
 		let userId = userdata.id;
 		let rqParams, today;
-		let apiName = 'get_case_list';
+
 		if (currentTab === 'AllCasesDiv') {
 			today = util.getTodayDevFormat();
-			rqParams = { username: main.doGetUserData().username, search_start_date: today };
+			rqParams = { hospitalId: hospitalId, userId: userId, statusId: caseAllStatus, filterDate: {from: today }};
 			today = util.getToday();
 			today = util.formatStudyDate(today);
-		} else {
-			rqParams = { hospitalId: hospitalId, userId: userId, statusId: [1,2,3,4,7] };
+		} else if (currentTab === 'ReadWaitDiv'){
+			rqParams = { hospitalId: hospitalId, userId: userId, statusId: caseReadWaitStatus };
+		} else if (currentTab === 'ReadSuccessDiv'){
+			rqParams = { hospitalId: hospitalId, userId: userId, statusId: caseReadSuccessStatus };
 		}
 
 		try {
@@ -729,18 +720,20 @@ module.exports = function ( jq ) {
 	async function doCallSearchCasebyDate(startDate) {
 		$('body').loading('start');
 		const main = require('../main.js');
-		let apiName = 'get_case_list';
-		let rqParams = { username: main.doGetUserData().username, search_start_date: startDate };
+		let userdata = JSON.parse(main.doGetUserData());
+		let hospitalId = userdata.hospitalId;
+		let userId = userdata.id;
+
+		let apiUrl = '/api/cases/filter';
+		let rqParams = { hospitalId: hospitalId, userId: userId, statusId: caseAllStatus, filterDate: {from: startDate }};
 		let fromDate = startDate.split('-');
 		fromDate = fromDate.join('');
 		fromDate = util.formatStudyDate(fromDate);
 		try {
-			let response = await doCallApi(apiName, rqParams);
-			console.log(response);
-			let resBody = JSON.parse(response.res.body);
-			if ((resBody.incident) || (resBody.success == true)){
+			let response = await doCallApi(apiUrl, rqParams);
+			if (response.status.code === 200) {
 				$("#AllCasesDiv-Control").empty();
-				let dateRange = $('<div style="float: left;"><h3>เคสทั้งหมด จากวันที่ ' + fromDate + '</h3></div>');
+				let dateRange = $('<div style="float: left;"><h3>เคสทั้งหมด จากวันที่ <span id="FromDate">' + fromDate + '</span></h3></div>');
 				$("#AllCasesDiv-Control").append($(dateRange));
 				let dateRangeSearchCmd = $('<div style="margin-top: 25px; left: 15px;"><button class="radcon-button button-bw">เก่ากว่า ...</button></div>');
 				$(dateRangeSearchCmd).click(function() {
@@ -748,28 +741,27 @@ module.exports = function ( jq ) {
 				});
 				$("#AllCasesDiv-Control").append($(dateRangeSearchCmd));
 				$("#AllCasesDiv-Content").empty();
-				rwTable = await doShowAllCaseList(resBody.incident);
+				rwTable = await doShowAllCaseList(response.Records);
 				$("#AllCasesDiv-Content").append($(rwTable));
-			} else if (resBody.success == false){
-				alert('Your Session on API server had expired.\nPlease Logout and Login back gain.');
+			} else {
+				$.notify("เกิดความผิดพลาด ไม่สามารถเรียกเคสตามที่ระบุได้ในขณะนี้", "error");
 			}
   		$('body').loading('stop');
 		} catch(e) {
 	    console.log('Unexpected error occurred =>', e);
+			$.notify("เกิดความผิดพลาด : " + e, "error");
 	    $('body').loading('stop');
     }
 	}
 
 	function doShowRwCaseList(incidents) {
-  	//console.log(incidents);
 		return new Promise(async function(resolve, reject) {
 			if ((incidents) && (incidents.length > 0)) {
 				let filterIncidents = incidents.filter((item, ind) => {
-					//if (caseReadWaitStatus.indexOf(item.status) >= 0) {
+					if (caseReadWaitStatus.indexOf(item.case.casestatusId) >= 0) {
 						return item;
-					//}
+					}
 				});
-				//console.log(filterIncidents);
 				if (filterIncidents.length > 0) {
 					let showTable = await doShowCaseList(filterIncidents);
 					resolve(showTable);
@@ -783,15 +775,13 @@ module.exports = function ( jq ) {
   }
 
   function doShowRsCaseList(incidents) {
-		console.log(incidents);
 		return new Promise(async function(resolve, reject) {
 			if ((incidents) && (incidents.length > 0)) {
 				let filterIncidents = incidents.filter((item, ind) => {
-					if (caseReadSuccessStatus.indexOf(item.status) >= 0) {
+					if (caseReadSuccessStatus.indexOf(item.case.casestatusId) >= 0) {
 						return item;
 					}
 				});
-				console.log(filterIncidents);
 				if (filterIncidents.length > 0) {
 					let showTable = await doShowCaseList(filterIncidents);
 					resolve(showTable);
@@ -821,7 +811,6 @@ module.exports = function ( jq ) {
 	}
 
   function doShowCaseList(incidents) {
-		console.log(incidents);
 		return new Promise(function(resolve, reject) {
 			let rwTable = $('<table width="100%" cellpadding="5" cellspacing="0"></table>');
 			let headRow = $('<tr style="background-color: green;"></tr>');
@@ -830,12 +819,13 @@ module.exports = function ( jq ) {
 			$(headRow).append($(headColumns));
 			for (let i=0; i < incidents.length; i++) {
 				let dataRow = $('<tr class="case-row"></tr>');
-				let casedatetime = incidents[i].case.createdAt.split(' ');
+				let casedatetime = incidents[i].case.createdAt.split('T');
 				let casedateSegment = casedatetime[0].split('-');
 				casedateSegment = casedateSegment.join('');
 				let casedate = util.formatStudyDate(casedateSegment);
-				$(dataRow).append($('<td align="center"><div class="tooltip">'+ casedate + '<span class="tooltiptext">' + casedatetime[1] + '</span></div></td>'));
-				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_NameEN + '</td>'));
+				let casetime = util.formatStudyTime(casedatetime[1].split(':').join(''));
+				$(dataRow).append($('<td align="center"><div class="tooltip">'+ casedate + '<span class="tooltiptext">' + casetime + '</span></div></td>'));
+				$(dataRow).append($('<td align="center"><div class="tooltip">'+ incidents[i].case.patient.Patient_NameEN + '<span class="tooltiptext">' + incidents[i].case.patient.Patient_NameTH + '</span></div></td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_Age + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_Sex + '</td>'));
 				$(dataRow).append($('<td align="center">'+ incidents[i].case.patient.Patient_HN + '</td>'));
@@ -881,8 +871,7 @@ module.exports = function ( jq ) {
 				*/
 				let downlodDicomButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/zip-icon.png" title="Download Dicom in zip file."/>');
 				$(downlodDicomButton).click(function() {
-					let patientNameEN = incidents[i].case.patient.Patient_NameEN.split(' ');
-					patientNameEN = patientNameEN.join('_');
+					let patientNameEN = incidents[i].case.patient.Patient_NameEN;
 					let savefile = patientNameEN + '-' + casedateSegment + '.zip';
 					doDownloadDicom(incidents[i].case.Case_OrthancStudyID, savefile);
 				});
@@ -900,12 +889,10 @@ module.exports = function ( jq ) {
 				});
 				$(changeCaseStatusButton).appendTo($(operationCmdBox));
 
-
-				if (caseReadSuccessStatus.indexOf(incidents[i].status) >= 0) {
+				if (caseReadSuccessStatus.indexOf(incidents[i].case.casestatusId) >= 0) {
 					let printResultButton = $('<img class="pacs-command" data-toggle="tooltip" src="/images/print-icon.png" title="Print Read Result."/>');
 					$(printResultButton).click(function() {
-						let patientNameEN = incidents[i].dicom_zip2.split(' ');
-						patientNameEN = patientNameEN.join('_');
+						let patientNameEN = incidents[i].case.patient.Patient_NameEN;
 						doShowPopupReadResult(incidents[i].re_url, patientNameEN, casedateSegment);
 					});
 					$(printResultButton).appendTo($(operationCmdBox));
@@ -2022,10 +2009,8 @@ module.exports = function ( jq ) {
 
 		let rqParams = { hospitalId: hospitalId, userId: userId};
 		let casestatusRes = await doGetApi('/api/casestatus/options', rqParams);
-		console.log(casestatusRes);
 
 		let caseDescRes = await doGetApi('/api/cases/description/' + id, rqParams);
-		console.log(caseDescRes);
 
   	const spacingBox = $('<span>&nbsp;</span>');
   	const inputStyleClass = {"font-family": "THSarabunNew", "font-size": "24px"};
@@ -2116,7 +2101,7 @@ module.exports = function ( jq ) {
   	if (userConfirm == true){
   		$('body').loading('start');
   		let newStatus = 'cancel';
-			doUpdateCaseStatus(caseID, newStatus).then((response) => {
+			doDeleteCase(caseID).then((response) => {
 				if (currentTab === 'ReadWaitDiv') {
 					//openRwCaseList();
 					$("#ReadWaitTab").trigger("click");
@@ -2140,6 +2125,23 @@ module.exports = function ( jq ) {
 			let userId = userdata.userId;
 			let rqParams = { hospitalId: hospitalId, userId: userId, caseId: id, casestatusId: newStatus, caseDescription: newDescription};
 			let apiUrl = '/api/cases/status/' + id;
+			try {
+				let response = await doCallApi(apiUrl, rqParams);
+				resolve(response);
+			} catch(e) {
+	      reject(e);
+    	}
+		});
+	}
+
+	function doDeleteCase(id) {
+		return new Promise(async function(resolve, reject) {
+			const main = require('../main.js');
+			let userdata = JSON.parse(main.doGetUserData());
+			let hospitalId = userdata.hospitalId;
+			let userId = userdata.userId;
+			let rqParams = { hospitalId: hospitalId, userId: userId, id: id};
+			let apiUrl = '/api/cases/delete';
 			try {
 				let response = await doCallApi(apiUrl, rqParams);
 				resolve(response);
