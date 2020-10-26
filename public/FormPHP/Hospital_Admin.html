@@ -1,0 +1,65 @@
+<div class="row">
+    <div class="col-xl-12 col-lg-12" id="ManageCase">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-6 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary"> โรงพยาบาล </h6>
+
+            </div>
+            <div class="card-body ">
+                <!--- mb-3 mb-sm-0-->
+                <form class="user">
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <span class="text-info"> Hospital DICOM ID </span>
+                            <input type="text" class="form-control" id="vHosOrtancID">
+                        </div>
+                        <div class="col-sm-4">
+                            <span class="text-info"> ชื่อ </span>
+                            <input type="text" class="form-control" id="vHosName">
+                        </div>
+                        <div class="col-sm-4">
+                            <span class="text-info"> ที่อยู่(Address) </span>
+                            <input type="text" class="form-control" id="vHos_Address">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-3">
+                            <span class="text-info"> Telphone </span>
+                            <input type="text" class="form-control" id="vHos_Telphone">
+                        </div>
+                        <div class="col-sm-3">
+                            <span class="text-info"> WebUrl </span>
+                            <input type="text" class="form-control" id="vHos_WebUrl">
+                        </div>
+                        <div class="col-sm-3">
+                            <span class="text-info"> Contact </span>
+                            <input type="text" class="form-control" id="vHos_Contact">
+                        </div>
+                        <div class="col-sm-3">
+                            <span class="text-info"> Remark </span>
+                            <input type="text" class="form-control" id="vHos_Remark">
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group row">
+                        <div class="col-sm-2" id="frmSaveHos">
+                            <input class="btn-lg btn-success btn-block center" id="SaveHos" value="บันทึก" readonly="">
+                        </div>
+                        <div class="col-sm-2" id="frmCancelHos">
+                            <input class="btn-lg btn-warning btn-block center" id="CancelCase" value="ออก" readonly="">
+                        </div>
+                    </div>
+                    <input type="hidden" id="vHosID">
+                </form>
+                <div class="form-group row">
+                    <div class="col-sm-6">
+                        <div id="gridHospital"> </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- <script    src="js/widgets/Hospital_Admin.js"></script> -->

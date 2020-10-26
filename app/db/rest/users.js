@@ -16,11 +16,13 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 app.get('/', async function(req, res) {
   const hostname = req.headers.host;
-	const rootname = req.originalUrl.split('/')[1];
+  const rootname = req.originalUrl.split('/')[1];
+  const excludeColumn = { exclude: ['updatedAt', 'createdAt'] };
+  const userInclude = [{model: db.usertypes, attributes: excludeColumn}, {model: db.userstatuses, attributes: excludeColumn}, {model: db.userinfoes, attributes: excludeColumn}];
 	log.info('hostname => ' + hostname);
 	log.info('rootname => ' + rootname);
   try {
-		const users = await db.users.findAll();
+		const users = await db.users.findAll({include: userInclude, attributes: excludeColumn});
 		res.json({ users })
 	} catch(error) {
 		log.error(error)
